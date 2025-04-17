@@ -13,7 +13,7 @@ export function login(data: ILoginData) {
 // 书籍列表接口
 export function getGoodsList(){
     return service({
-        url: "/book/getBooksList",
+        url: "/book",
         method: "GET"
     })
 }

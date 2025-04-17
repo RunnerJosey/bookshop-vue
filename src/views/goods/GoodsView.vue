@@ -1,24 +1,26 @@
 <template>
-  <div >
+  <div>
     <el-form :inline="true" :model="selected_data" class="search-form">
-
-      <el-form-item label="书籍名称">
-        <el-input v-model="selected_data.title" placeholder="请输入书籍名称" />
+      <el-form-item label="书名">
+        <el-input v-model="selected_data.bookName" placeholder="请输入书名" />
       </el-form-item>
-
-      <el-form-item label="书籍详情">
+      <el-form-item label="书详情">
         <el-input v-model="selected_data.introduce" placeholder="请输入书籍详情" />
       </el-form-item>
-
       <el-form-item>
-        <el-button type="primary" @click="onSearchGoods()">查询</el-button>
+        <el-button type="primary" @click="onSearchGoods">查询</el-button>
       </el-form-item>
     </el-form>
 
     <el-table :data="showedDataList.compDataList" border style="width: 100%">
       <el-table-column prop="id" label="编号" width="180" />
-      <el-table-column prop="title" label="书籍名称" width="180" />
-      <el-table-column prop="introduce" label="书籍详情" />
+      <el-table-column prop="bookName" label="书名" width="180" />
+      <el-table-column prop="introduce" label="详情" />
+      <el-table-column prop="author" label="作者" />
+      <el-table-column prop="creater" label="创建者" />
+      <el-table-column prop="createTime" label="创建时间" />
+      <el-table-column prop="updater" label="更新者" />
+      <el-table-column prop="updateTime" label="更新时间" />
     </el-table>
 
     <el-pagination background
@@ -33,91 +35,110 @@
 
 <script lang="ts">
 import { getGoodsList } from '@/request/api';
-import {computed, defineComponent, onMounted, reactive, toRefs, watch} from 'vue';
-import {GoodsPages, IGoods} from "@/type/goods";
+import { computed, defineComponent, onMounted, reactive, toRefs, watch } from 'vue';
+import { GoodsPages, IGoods, IQueryGoods } from "@/type/goods";
+import { throttle } from 'lodash';
 
 export default defineComponent({
-  setup () {
-    const goods_data = reactive(new GoodsPages())
+  setup() {
+    const goods_data = reactive(new GoodsPages());
 
     // 获取全部商品数据, 因为多个地方使用,所以封装为方法
     const p_getGoodsList = () => {
       getGoodsList().then(res => {
-        console.log('gg', res)
-        goods_data.goods_list = res.data.data
-        goods_data.selected_data.data_count = res.data.data.length
-      })
-    }
+        console.log('API Response:', res); // 添加日志 res 就是返回response
+        console.log('API Response:(res.data)', res.data); // 添加日志
+        if (res && res.data && Array.isArray(res.data.records)) {
+          goods_data.goods_list = res.data.records.map((record: IGoods) => ({
+            ...record,
+
+          }));
+          goods_data.selected_data.data_count = res.data.total;
+        } else {
+          console.error("API 数据格式不正确:", res);
+          goods_data.goods_list = [];
+          goods_data.selected_data.data_count = 0;
+        }
+      }).catch(error => {
+        console.error("API 请求失败:", error);
+        goods_data.goods_list = [];
+        goods_data.selected_data.data_count = 0;
+      });
+    };
 
     onMounted(() => {
-      p_getGoodsList()  // 获取全部商品数据
-    })
+      const throttledGetGoodsList = throttle(p_getGoodsList, 300);
+      throttledGetGoodsList();
+    });
 
     // 点击查询商品按钮时触发
     const onSearchGoods = () => {
-      // console.log(goods_data.selected_data.title)
-      // console.log(goods_data.selected_data.introduce)
-      let search_res: IGoods[] = []  // 接受查询商品的结果
-      if(goods_data.selected_data.title || goods_data.selected_data.introduce){
-        if(goods_data.selected_data.title){
+      let search_res: IGoods[] = [];  // 接受查询商品的结果
+
+      if (!Array.isArray(goods_data.goods_list)) {
+        console.warn("商品列表未正确初始化");
+        goods_data.goods_list = [];
+      }
+
+      if (goods_data.selected_data.title || goods_data.selected_data.introduce) {
+        if (goods_data.selected_data.title) {
           search_res = goods_data.goods_list.filter((value) => {
-            return value.title.indexOf(goods_data.selected_data.title) !== -1
-          })
+            return value.title?.indexOf(goods_data.selected_data.title) !== -1;
+          });
+        } else if (goods_data.selected_data.introduce) {
+          search_res = goods_data.goods_list.filter((value) => {
+            return value.introduce?.indexOf(goods_data.selected_data.introduce) !== -1;
+          });
         }
-        else {
-          if(goods_data.selected_data.introduce){
-            search_res = goods_data.goods_list.filter((value) => {
-              return value.introduce.indexOf(goods_data.selected_data.introduce) !== -1
-            })
-          }
-        }
+      } else {
+        search_res = goods_data.goods_list;
       }
-      else {
-        search_res = goods_data.goods_list
-      }
-      goods_data.goods_list = search_res
-      goods_data.selected_data.data_count = goods_data.goods_list.length
-    }
+
+      goods_data.goods_list = search_res;
+      goods_data.selected_data.data_count = goods_data.goods_list.length;
+    };
 
     // 计算属性, 切割出实际上需要展示的数据
     const showedDataList = reactive({
       compDataList: computed(() => {
+        if (!Array.isArray(goods_data.goods_list)) return [];
         return goods_data.goods_list.slice(
             (goods_data.selected_data.current_page - 1) * goods_data.selected_data.single_page_size,
-            goods_data.selected_data.current_page * goods_data.selected_data.single_page_size,
-        )
+            goods_data.selected_data.current_page * goods_data.selected_data.single_page_size
+        );
       })
-    })
+    });
 
     // 当前页改变时触发
     const currentChange = (page: number) => {
-      goods_data.selected_data.current_page = page
-    }
+      goods_data.selected_data.current_page = page;
+    };
 
     // 当单页数量改变时触发
     const sizeChange = (page_size: number) => {
-      goods_data.selected_data.single_page_size = page_size
-    }
+      goods_data.selected_data.single_page_size = page_size;
+    };
 
-    //watch 监听
+    // watch 监听
     watch([() => goods_data.selected_data.title, () => goods_data.selected_data.introduce], () => {
-      if(goods_data.selected_data.title === "" && goods_data.selected_data.introduce === ""){
-        p_getGoodsList()
+      if (goods_data.selected_data.title === "" && goods_data.selected_data.introduce === "") {
+        p_getGoodsList();
       }
-    })
+    });
+
     return {
       ...toRefs(goods_data),
       onSearchGoods,
       currentChange,
       sizeChange,
       showedDataList
-    }
+    };
   }
-})
+});
 </script>
 
 <style scoped>
-  .search-form{
-    padding: 10px 0 0 10px;
-  }
+.search-form {
+  padding: 10px 0 0 10px;
+}
 </style>
