@@ -10,6 +10,12 @@
       <el-form-item>
         <el-button type="primary" @click="onSearchGoods">查询</el-button>
       </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onEditBook">修改</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onInsertBook">新增</el-button>
+      </el-form-item>
     </el-form>
 
     <el-table :data="showedDataList.compDataList" border style="width: 100%">
@@ -70,6 +76,60 @@ export default defineComponent({
       const throttledGetGoodsList = throttle(p_getGoodsList, 300);
       throttledGetGoodsList();
     });
+
+    // 点击修改或者新增按钮时触发
+    const onEditBook = () => {
+      let search_res: IGoods[] = [];  // 接受查询商品的结果
+
+      if (!Array.isArray(goods_data.goods_list)) {
+        console.warn("商品列表未正确初始化");
+        goods_data.goods_list = [];
+      }
+
+      if (goods_data.selected_data.title || goods_data.selected_data.introduce) {
+        if (goods_data.selected_data.title) {
+          search_res = goods_data.goods_list.filter((value) => {
+            return value.title?.indexOf(goods_data.selected_data.title) !== -1;
+          });
+        } else if (goods_data.selected_data.introduce) {
+          search_res = goods_data.goods_list.filter((value) => {
+            return value.introduce?.indexOf(goods_data.selected_data.introduce) !== -1;
+          });
+        }
+      } else {
+        search_res = goods_data.goods_list;
+      }
+
+      goods_data.goods_list = search_res;
+      goods_data.selected_data.data_count = goods_data.goods_list.length;
+    };
+
+    // 点击修改或者新增按钮时触发
+    const onInsertBook = () => {
+      let search_res: IGoods[] = [];  // 接受查询商品的结果
+
+      if (!Array.isArray(goods_data.goods_list)) {
+        console.warn("商品列表未正确初始化");
+        goods_data.goods_list = [];
+      }
+
+      if (goods_data.selected_data.title || goods_data.selected_data.introduce) {
+        if (goods_data.selected_data.title) {
+          search_res = goods_data.goods_list.filter((value) => {
+            return value.title?.indexOf(goods_data.selected_data.title) !== -1;
+          });
+        } else if (goods_data.selected_data.introduce) {
+          search_res = goods_data.goods_list.filter((value) => {
+            return value.introduce?.indexOf(goods_data.selected_data.introduce) !== -1;
+          });
+        }
+      } else {
+        search_res = goods_data.goods_list;
+      }
+
+      goods_data.goods_list = search_res;
+      goods_data.selected_data.data_count = goods_data.goods_list.length;
+    };
 
     // 点击查询商品按钮时触发
     const onSearchGoods = () => {

@@ -6,16 +6,16 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: 'home',
     component: HomeView,
-    redirect: 'goods',
+    redirect: 'books',
     children: [
       {
-        path: 'goods',
+        path: 'books',
         name: 'GoodsView',
         meta: {
           isShow: true,  // 是否需要被展示出来
           title: "书籍列表"
         },
-        component: () => import('../views/goods/GoodsView.vue')
+        component: () => import('../views/books/BooksView.vue')
       },
       {
         path: 'user',
@@ -58,6 +58,18 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     name: 'LoginView',
     component: () => import(/* webpackChunkName: "login" */ '../views/LoginView.vue')
+  },
+  {
+    path: '/books',
+    name: 'EditBook',
+    //者修改书信息页面
+    component: () => import(/* webpackChunkName: "login" */ '../views/books/BookEdit.vue')
+  },
+  {
+    path: '/books',
+    name: 'AddBook',
+    //新增书书信息页面,
+    component: () => import(/* webpackChunkName: "login" */ '../views/books/BookEdit.vue')
   }
 ]
 
