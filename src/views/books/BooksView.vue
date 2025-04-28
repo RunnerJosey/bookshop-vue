@@ -10,9 +10,7 @@
       <el-form-item>
         <el-button type="primary" @click="onSearchGoods">查询</el-button>
       </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="onEditBook">修改</el-button>
-      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" @click="onInsertBook">新增</el-button>
       </el-form-item>
@@ -27,6 +25,11 @@
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column prop="updater" label="更新者" />
       <el-table-column prop="updateTime" label="更新时间" />
+      <el-table-column label="操作" width="120">
+        <template #default="scope">
+        <el-button type="primary" size="small" @click="onEditBook(scope.row.id)">修改</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <el-pagination background
@@ -44,6 +47,9 @@ import { getGoodsList } from '@/request/api';
 import { computed, defineComponent, onMounted, reactive, toRefs, watch } from 'vue';
 import { GoodsPages, IGoods, IQueryGoods } from "@/type/goods";
 import { throttle } from 'lodash';
+import { useRouter } from 'vue-router';
+import { getBookById } from '@/request/api' // 你的API路径
+import { ElForm } from 'element-plus';
 
 export default defineComponent({
   setup() {
@@ -78,31 +84,13 @@ export default defineComponent({
     });
 
     // 点击修改或者新增按钮时触发
-    const onEditBook = () => {
-      let search_res: IGoods[] = [];  // 接受查询商品的结果
 
-      if (!Array.isArray(goods_data.goods_list)) {
-        console.warn("商品列表未正确初始化");
-        goods_data.goods_list = [];
-      }
 
-      if (goods_data.selected_data.title || goods_data.selected_data.introduce) {
-        if (goods_data.selected_data.title) {
-          search_res = goods_data.goods_list.filter((value) => {
-            return value.title?.indexOf(goods_data.selected_data.title) !== -1;
-          });
-        } else if (goods_data.selected_data.introduce) {
-          search_res = goods_data.goods_list.filter((value) => {
-            return value.introduce?.indexOf(goods_data.selected_data.introduce) !== -1;
-          });
-        }
-      } else {
-        search_res = goods_data.goods_list;
-      }
+    const router = useRouter()
 
-      goods_data.goods_list = search_res;
-      goods_data.selected_data.data_count = goods_data.goods_list.length;
-    };
+  function onEditBook(id: number) {
+    router.push({ name: 'EditBook', params: { id } })
+  }
 
     // 点击修改或者新增按钮时触发
     const onInsertBook = () => {
@@ -188,6 +176,8 @@ export default defineComponent({
 
     return {
       ...toRefs(goods_data),
+      onInsertBook,
+      onEditBook,
       onSearchGoods,
       currentChange,
       sizeChange,

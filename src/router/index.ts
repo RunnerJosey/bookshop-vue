@@ -60,13 +60,13 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import(/* webpackChunkName: "login" */ '../views/LoginView.vue')
   },
   {
-    path: '/books',
+    path: '/books/edit/:id',
     name: 'EditBook',
     //者修改书信息页面
     component: () => import(/* webpackChunkName: "login" */ '../views/books/BookEdit.vue')
   },
   {
-    path: '/books',
+    path: '/books/add',
     name: 'AddBook',
     //新增书书信息页面,
     component: () => import(/* webpackChunkName: "login" */ '../views/books/BookEdit.vue')

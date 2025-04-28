@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>{{ props.bookData ? '编辑书籍' : '新增书籍' }}</h2>
+    <h2>{{ bookData ? '编辑书籍' : '新增书籍' }}</h2>
     <el-form
         :model="book"
         :rules="rules"
@@ -32,6 +32,7 @@
 import { defineComponent, reactive, ref, unref } from 'vue';
 import { IGoods } from "@/type/goods";
 import { ElForm } from 'element-plus';
+import { useRoute } from 'vue-router'
 
 export default defineComponent({
   props: {

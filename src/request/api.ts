@@ -18,6 +18,15 @@ export function getGoodsList(){
     })
 }
 
+// 书籍列表接口
+export function getBookById(id: number | string){
+    return service({
+        url: "/book",
+        method: "GET",
+        params: { id }
+    })
+}
+
 // 用户列表接口
 export function getUserList(){
     return service({
