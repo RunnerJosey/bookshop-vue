@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>{{ bookData ? '编辑书籍' : '新增书籍' }}</h2>
+    <h2>{{ isEdit ? '编辑书籍' : '新增书籍' }}</h2>
     <el-form
         :model="book"
         :rules="rules"
@@ -29,32 +29,37 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref, unref } from 'vue';
+import { defineComponent, reactive, ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { IGoods } from "@/type/goods";
-import { ElForm } from 'element-plus';
-import { useRoute } from 'vue-router'
+import type { FormInstance } from 'element-plus';
+import { getBookById } from '@/request/api';
+import { ElMessage } from 'element-plus';
 
 export default defineComponent({
-  props: {
-    bookData: {
-      type: Object as () => IGoods | null,
-      default: null
-    }
-  },
-  setup(props) {
-    const bookForm = ref<InstanceType<typeof ElForm>>();
+  name: 'BookEdit',
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const bookForm = ref<FormInstance>();
+    const isEdit = ref(false);
 
-    // 修复：确保所有必填字段都有初始值
+    // 初始化表单数据
     const book = reactive<IGoods>({
-      id: unref(props.bookData)?.id || 0, // 修改为数字类型的默认值
-      title: unref(props.bookData)?.title || '', // 添加必填字段
-      introduce: unref(props.bookData)?.introduce || '',
-      bookName: unref(props.bookData)?.bookName || '',
-      author: unref(props.bookData)?.author || '',
-      creater: unref(props.bookData)?.creater || '',
-      userId: unref(props.bookData)?.userId
+      id: 0,
+      bookName: '',
+      introduce: '',
+      author: '',
+      creater: '',
+      title: '',
+      userId: undefined,
+      createTime: '',
+      updateTime: '',
+      updater: '',
+      isDelete: '0'
     });
 
+    // 表单验证规则
     const rules = reactive({
       bookName: [
         { required: true, message: '请输入书名', trigger: 'blur' }
@@ -62,35 +67,84 @@ export default defineComponent({
       introduce: [
         { required: true, message: '请输入书籍详情', trigger: 'blur' }
       ],
-      title: [ // 添加必填字段的验证
-        { required: true, message: '请输入标题', trigger: 'blur' }
+      author: [
+        { required: true, message: '请输入作者', trigger: 'blur' }
+      ],
+      creater: [
+        { required: true, message: '请输入创建者', trigger: 'blur' }
       ]
     });
 
-    const submitForm = () => {
-      bookForm.value?.validate((valid) => {
+    // 获取书籍详情
+    const getBookDetail = async (id: string) => {
+      try {
+        const res = await getBookById(id);
+        if (res?.data?.records?.[0]) {
+          const bookData = res.data.records[0];
+          Object.assign(book, bookData);
+        } else {
+          ElMessage.error('获取书籍详情失败');
+        }
+      } catch (error) {
+        console.error('获取书籍详情失败:', error);
+        ElMessage.error('获取书籍详情失败');
+      }
+    };
+
+    // 组件挂载时获取数据
+    onMounted(() => {
+      const id = route.params.id;
+      if (id && typeof id === 'string') {
+        isEdit.value = true;
+        getBookDetail(id);
+      }
+    });
+
+    // 提交表单
+    const submitForm = async () => {
+      if (!bookForm.value) return;
+
+      await bookForm.value.validate(async (valid) => {
         if (valid) {
-          const submitData: IGoods = {
-            ...book,
-            id: book.id || 0
-          };
-          console.log('提交数据:', submitData);
+          try {
+            // TODO: 调用提交接口
+            console.log('提交数据:', book);
+            ElMessage.success('提交成功');
+            router.push('/books'); // 返回列表页
+          } catch (error) {
+            console.error('提交失败:', error);
+            ElMessage.error('提交失败');
+          }
         }
       });
     };
 
+    // 重置表单
     const resetForm = () => {
-      bookForm.value?.resetFields();
-      if (!props.bookData) {
+      if (!bookForm.value) return;
+
+      bookForm.value.resetFields();
+      if (!isEdit.value) {
+        // 新增时重置所有字段
         Object.assign(book, {
           id: 0,
-          title: '',
           bookName: '',
           introduce: '',
           author: '',
           creater: '',
-          userId: undefined
+          title: '',
+          userId: undefined,
+          createTime: '',
+          updateTime: '',
+          updater: '',
+          isDelete: '0'
         });
+      } else {
+        // 编辑时重新获取原始数据
+        const id = route.params.id;
+        if (id && typeof id === 'string') {
+          getBookDetail(id);
+        }
       }
     };
 
@@ -98,6 +152,7 @@ export default defineComponent({
       bookForm,
       book,
       rules,
+      isEdit,
       submitForm,
       resetForm
     };
