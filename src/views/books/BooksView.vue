@@ -28,6 +28,7 @@
       <el-table-column label="操作" width="120">
         <template #default="scope">
         <el-button type="primary" size="small" @click="onEditBook(scope.row.id)">修改</el-button>
+          <el-button type="danger" size="small" @click="onDeleteBook(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -50,6 +51,8 @@ import { throttle } from 'lodash';
 import { useRouter } from 'vue-router';
 import { getBookById } from '@/request/api' // 你的API路径
 import { ElForm } from 'element-plus';
+import { deleteBook } from '@/request/api';
+import { ElMessageBox, ElMessage } from 'element-plus';
 
 export default defineComponent({
   setup() {
@@ -91,32 +94,36 @@ export default defineComponent({
   function onEditBook(id: number) {
     router.push({ name: 'EditBook', params: { id } })
   }
+    const onDeleteBook = (id: number) => {
+      ElMessageBox.confirm(
+          '确定要删除这本书吗？',
+          '提示',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }
+      ).then(async () => {
+        try {
+          const res = await deleteBook([id]);
+          console.log('delete bok 返回：', res);
+          if (res === true) {
+            ElMessage.success('删除成功');
+            p_getGoodsList(); // 重新获取列表
+          } else {
+            ElMessage.error(res.message || '删除失败');
+          }
+        } catch (error) {
+          ElMessage.error('删除失败');
+        }
+      }).catch(() => {
+        // 用户取消，无需处理
+      });
+    };
 
     // 点击修改或者新增按钮时触发
     const onInsertBook = () => {
-      let search_res: IGoods[] = [];  // 接受查询商品的结果
-
-      if (!Array.isArray(goods_data.goods_list)) {
-        console.warn("商品列表未正确初始化");
-        goods_data.goods_list = [];
-      }
-
-      if (goods_data.selected_data.title || goods_data.selected_data.introduce) {
-        if (goods_data.selected_data.title) {
-          search_res = goods_data.goods_list.filter((value) => {
-            return value.title?.indexOf(goods_data.selected_data.title) !== -1;
-          });
-        } else if (goods_data.selected_data.introduce) {
-          search_res = goods_data.goods_list.filter((value) => {
-            return value.introduce?.indexOf(goods_data.selected_data.introduce) !== -1;
-          });
-        }
-      } else {
-        search_res = goods_data.goods_list;
-      }
-
-      goods_data.goods_list = search_res;
-      goods_data.selected_data.data_count = goods_data.goods_list.length;
+      router.push({ name: 'AddBook' });
     };
 
     // 点击查询商品按钮时触发
@@ -178,6 +185,7 @@ export default defineComponent({
       ...toRefs(goods_data),
       onInsertBook,
       onEditBook,
+      onDeleteBook,
       onSearchGoods,
       currentChange,
       sizeChange,

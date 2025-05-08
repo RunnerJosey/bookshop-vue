@@ -1,5 +1,6 @@
 import service from "@/request/index";
 import {ILoginData} from "@/type/login";
+import { IGoods } from '@/type/goods';
 
 // 登录接口
 export function login(data: ILoginData) {
@@ -25,6 +26,35 @@ export function getBookById(id: number | string){
         method: "GET",
         params: { id }
     })
+}
+
+// 书籍修改
+export function updateBook(data: IGoods ){
+    return service({
+        url: "/book/update",
+        method: "PUT",
+        data
+    }).then(res => res.data);//只返回后端数据
+}
+
+// 新增书籍
+export function addBook(data: IGoods) {
+    return service({
+        url: "/book/add",
+        method: "POST",
+        data
+    }).then(res => res.data); // 返回后端完整对象
+}
+
+// 删除书籍
+export function deleteBook(idList: (number | string)[]) {
+    return service({
+        url: "/book/delete",
+        method: "DELETE",
+        params: {
+            idList: idList.join(',')  // 将数组转换为逗号分隔的字符串
+        }
+    }).then(res => res.data);
 }
 
 // 用户列表接口

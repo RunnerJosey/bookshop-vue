@@ -33,8 +33,9 @@ import { defineComponent, reactive, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { IGoods } from "@/type/goods";
 import type { FormInstance } from 'element-plus';
-import { getBookById } from '@/request/api';
+import {getBookById, updateBook,addBook} from '@/request/api';
 import { ElMessage } from 'element-plus';
+
 
 export default defineComponent({
   name: 'BookEdit',
@@ -103,18 +104,37 @@ export default defineComponent({
     // 提交表单
     const submitForm = async () => {
       if (!bookForm.value) return;
-
       await bookForm.value.validate(async (valid) => {
         if (valid) {
           try {
-            // TODO: 调用提交接口
-            console.log('提交数据:', book);
-            ElMessage.success('提交成功');
+            if(isEdit.value){
+              //编辑模式：调用更新接口
+              const res = await updateBook(book);
+              console.log('updateBook返回：', res);
+              if(res === true){
+                ElMessage.success("更新成功");
+                router.push('/books');
+              }else {
+                ElMessage.error(res.message || '更新失败');
+              }
+            }else{
+              //新增模式
+              console.log('新增数据:', book);
+              const res = await addBook(book);
+              if (res === true) {
+                ElMessage.success("新增成功");
+                router.push('/books');
+              } else {
+                ElMessage.error(res.message || '新增失败');
+              }
+            }
             router.push('/books'); // 返回列表页
           } catch (error) {
             console.error('提交失败:', error);
             ElMessage.error('提交失败');
           }
+        } else {
+          ElMessage.warning('请填写必填项');
         }
       });
     };
