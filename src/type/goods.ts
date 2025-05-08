@@ -28,9 +28,10 @@ export interface IQueryGoods extends IGoods, IPage {
 export class GoodsPages {
     // 被选择的数据, 查询时用
     selected_data: IQueryGoods = {
+        title: "",
         userId: 0,
         id: 0,
-        title: "",
+        bookName: "",
         introduce: "",
         current_page: 1,
         data_count: 0,
