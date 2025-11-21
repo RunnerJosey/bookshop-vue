@@ -17,7 +17,7 @@
     </el-form>
 
     <el-table :data="showedDataList.compDataList" border style="width: 100%">
-      <el-table-column prop="serialNumber" label="编号" width="180" />
+      <el-table-column prop="serialNumber" label="编号" width="60" />
       <el-table-column prop="bookName" label="书名" width="180" />
       <el-table-column prop="introduce" label="详情" />
       <el-table-column prop="author" label="作者" />

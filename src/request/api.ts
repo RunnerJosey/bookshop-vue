@@ -48,7 +48,7 @@ export function getGoodsList(params?: { current?: number; size?: number }) {
 // 书籍列表接口
 export function getBookById(id: number | string){
     return service({
-        url: "/book",
+        url: "/book/getById",
         method: "GET",
         params: { id }
     })

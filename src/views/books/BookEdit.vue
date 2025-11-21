@@ -94,9 +94,10 @@ export default defineComponent({
     // 获取书籍详情
     const loadBookDetail = async (id: number) => {
       try {
-        const res = await getBookById(id);
-        if (res?.data?.records?.[0]) {
-          const bookData = res.data.records[0];
+        const res: any = await getBookById(id);
+        // 适配新的接口返回数据结构
+        if (res?.data && res.code === 200) {
+          const bookData = res.data;
           Object.assign(book, bookData);
         } else {
           ElMessage.error('获取书籍详情失败');
