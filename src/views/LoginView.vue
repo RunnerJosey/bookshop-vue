@@ -9,8 +9,8 @@
           label-width="70px"
       >
         <h2>后台管理系统</h2>
-        <el-form-item label="用户名:" prop="username">
-          <el-input v-model="ruleForm.username" type="text" autocomplete="off" />
+        <el-form-item label="用户名:" prop="userName">
+          <el-input v-model="ruleForm.userName" type="text" autocomplete="off" />
         </el-form-item>
 
         <el-form-item label="密码:" prop="password">
@@ -45,7 +45,7 @@ export default defineComponent({
 
     // 表单输入规则
     const rules = {
-      username: [
+      userName: [
         {
           required: true,  //是否必须字段
           message: "请输入用户名",   // 触发的提示信息
@@ -65,9 +65,9 @@ export default defineComponent({
           trigger: "blur"   // 触发时机: 当失去焦点时（光标不显示的时候），触发此提示
         },
         {
-          min: 3,   // 最小字符书
-          max: 6,   // 最大字符数
-          message: "密码长度需要在3-5个字符之间",  // 触发的提示信息
+          min: 6,   // 最小字符书
+          max: 20,   // 最大字符数
+          message: "密码长度需要在6-20个字符之间",  // 触发的提示信息
           trigger: "blur"
         }
       ]
@@ -78,7 +78,7 @@ export default defineComponent({
 
     // 重置
     const resetForm = () => {
-      data.ruleForm.username = ""
+      data.ruleForm.userName = ""
       data.ruleForm.password = ""
     }
 
@@ -90,7 +90,7 @@ export default defineComponent({
           login(data.ruleForm).then((res) => {
             console.log(res)
             // 将token进行保存
-            localStorage.setItem("token", res.data.token)
+            // localStorage.setItem("token", res.data.token)
             // 跳转页面
             ElMessage({
               type: 'success', message: '登录成功！'

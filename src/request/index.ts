@@ -16,16 +16,29 @@ const service = axios.create({
 service.interceptors.request.use((config) => {
     config.headers = config.headers || {};
     const token = localStorage.getItem("token");
-    if (token) {
-        config.headers.token = token;
+    // 检查 token 是否存在且有效
+    if (token && token !== 'undefined' && token !== 'null' && token.length > 0) {
+        // 确保 headers 存在
+        if (!config.headers) {
+            config.headers = {};
+        }
+        // 设置 Authorization 头部字段
+        config.headers['Authorization'] = token;
+    } else {
+        // 如果 token 无效，从 localStorage 中移除
+        localStorage.removeItem('token');
     }
     return config;
-});
+    },
+    error => {
+        return Promise.reject(error);
+    });
 
 // 响应拦截
 service.interceptors.response.use((response) => {
     const data = response.data;
     const code: number = data.code;
+    console.log('Response interceptor:', data); // 调试信息
     if (code !== 200) {
         return Promise.reject(data);
     }
