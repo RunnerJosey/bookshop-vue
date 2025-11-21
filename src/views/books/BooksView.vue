@@ -171,15 +171,10 @@ export default defineComponent({
     // 计算属性, 切割出实际上需要展示的数据，并添加序号
     const showedDataList = reactive({
       compDataList: computed(() => {
-        if (!Array.isArray(goods_data.goods_list)) return [];
-        const startIndex = (goods_data.selected_data.current_page - 1) * goods_data.selected_data.single_page_size;
-        return goods_data.goods_list.slice(
-            startIndex,
-            startIndex + goods_data.selected_data.single_page_size
-        ).map((item, index) => {
+        return goods_data.goods_list.map((item, index) => {
           return {
             ...item,
-            serialNumber: startIndex + index + 1 // 添加序号字段
+            serialNumber: (goods_data.selected_data.current_page - 1) * goods_data.selected_data.single_page_size + index + 1 // 添加序号字段
           };
         });
       })
