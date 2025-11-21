@@ -45,12 +45,17 @@
           @current-change="currentChange"
       />
     </div>
+
+    <!-- 新增书籍弹窗 -->
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="handleDialogClose">
+      <BookEdit ref="bookEditRef" :is-dialog-mode="true" @submit-success="handleBookSubmitSuccess" />
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts">
 import { getGoodsList } from '@/request/api';
-import { computed, defineComponent, onMounted, reactive, toRefs, watch } from 'vue';
+import { computed, defineComponent, onMounted, reactive, toRefs, watch, ref } from 'vue';
 import { GoodsPages, IGoods, IQueryGoods } from "@/type/goods";
 import { throttle } from 'lodash';
 import { useRouter } from 'vue-router';
@@ -58,10 +63,17 @@ import { getBookById } from '@/request/api' // 你的API路径
 import { ElForm } from 'element-plus';
 import { deleteBook } from '@/request/api';
 import { ElMessageBox, ElMessage } from 'element-plus';
+import BookEdit from './BookEdit.vue';
 
 export default defineComponent({
+  components: {
+    BookEdit
+  },
   setup() {
     const goods_data = reactive(new GoodsPages());
+    const router = useRouter();
+    const dialogVisible = ref(false);
+    const bookEditRef = ref<InstanceType<typeof BookEdit> | null>(null);
 
     onMounted(() => {
       p_getGoodsList();
@@ -131,8 +143,6 @@ export default defineComponent({
     // 点击修改或者新增按钮时触发
 
 
-    const router = useRouter()
-
   function onEditBook(id: number) {
     router.push({ name: 'EditBook', params: { id } })
   }
@@ -165,7 +175,20 @@ export default defineComponent({
 
     // 点击修改或者新增按钮时触发
     const onInsertBook = () => {
-      router.push({ name: 'AddBook' });
+      dialogVisible.value = true;
+    };
+
+    // 处理弹窗关闭
+    const handleDialogClose = () => {
+      if (bookEditRef.value) {
+        bookEditRef.value.resetForm();
+      }
+    };
+
+    // 处理书籍提交成功
+    const handleBookSubmitSuccess = () => {
+      dialogVisible.value = false;
+      p_getGoodsList(); // 重新获取列表
     };
 
     // 计算属性, 切割出实际上需要展示的数据，并添加序号
@@ -201,7 +224,11 @@ export default defineComponent({
       onSearchGoods,
       currentChange,
       sizeChange,
-      showedDataList
+      showedDataList,
+      dialogVisible,
+      bookEditRef,
+      handleDialogClose,
+      handleBookSubmitSuccess,
     };
   }
 });

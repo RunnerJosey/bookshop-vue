@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>{{ isEdit ? '编辑书籍' : '新增书籍' }}</h2>
+    <h2 v-if="!isDialogMode">{{ isEdit ? '编辑书籍' : '新增书籍' }}</h2>
     <el-form
         :model="book"
         :rules="rules"
@@ -23,6 +23,7 @@
       <el-form-item>
         <el-button type="primary" @click="submitForm">提交</el-button>
         <el-button @click="resetForm">重置</el-button>
+        <el-button v-if="isDialogMode" @click="cancelForm">取消</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -39,7 +40,14 @@ import { ElMessage } from 'element-plus';
 
 export default defineComponent({
   name: 'BookEdit',
-  setup() {
+  props: {
+    isDialogMode: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['submit-success'],
+  setup(props, { emit }) {
     const route = useRoute();
     const router = useRouter();
     const bookForm = ref<FormInstance>();
@@ -113,7 +121,11 @@ export default defineComponent({
               console.log('updateBook返回：', res);
               if(res === true){
                 ElMessage.success("更新成功");
-                router.push('/books');
+                if (props.isDialogMode) {
+                  emit('submit-success');
+                } else {
+                  router.push('/books');
+                }
               }else {
                 ElMessage.error(res.message || '更新失败');
               }
@@ -123,12 +135,15 @@ export default defineComponent({
               const res = await addBook(book);
               if (res === true) {
                 ElMessage.success("新增成功");
-                router.push('/books');
+                if (props.isDialogMode) {
+                  emit('submit-success');
+                } else {
+                  router.push('/books');
+                }
               } else {
                 ElMessage.error(res.message || '新增失败');
               }
             }
-            router.push('/books'); // 返回列表页
           } catch (error) {
             console.error('提交失败:', error);
             ElMessage.error('提交失败');
@@ -168,13 +183,21 @@ export default defineComponent({
       }
     };
 
+    // 取消表单（仅用于弹窗模式）
+    const cancelForm = () => {
+      if (props.isDialogMode) {
+        emit('submit-success'); // 使用相同事件关闭弹窗
+      }
+    };
+
     return {
       bookForm,
       book,
       rules,
       isEdit,
       submitForm,
-      resetForm
+      resetForm,
+      cancelForm
     };
   }
 });
