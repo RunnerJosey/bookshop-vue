@@ -46,9 +46,15 @@
       />
     </div>
 
-    <!-- 新增书籍弹窗 -->
+    <!-- 新增/编辑书籍弹窗 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="handleDialogClose">
-      <BookEdit ref="bookEditRef" :is-dialog-mode="true" @submit-success="handleBookSubmitSuccess" />
+      <BookEdit 
+        ref="bookEditRef" 
+        :is-dialog-mode="true" 
+        :edit-mode="editMode"
+        :book-id="currentBookId"
+        @submit-success="handleBookSubmitSuccess" 
+      />
     </el-dialog>
   </div>
 </template>
@@ -74,6 +80,9 @@ export default defineComponent({
     const router = useRouter();
     const dialogVisible = ref(false);
     const bookEditRef = ref<InstanceType<typeof BookEdit> | null>(null);
+    const editMode = ref(false); // false为新增，true为编辑
+    const currentBookId = ref<number | null>(null);
+    const dialogTitle = computed(() => editMode.value ? '编辑书籍' : '新增书籍');
 
     onMounted(() => {
       p_getGoodsList();
@@ -144,8 +153,11 @@ export default defineComponent({
 
 
   function onEditBook(id: number) {
-    router.push({ name: 'EditBook', params: { id } })
+    editMode.value = true;
+    currentBookId.value = id;
+    dialogVisible.value = true;
   }
+
     const onDeleteBook = (id: number) => {
       ElMessageBox.confirm(
           '确定要删除这本书吗？',
@@ -173,8 +185,10 @@ export default defineComponent({
       });
     };
 
-    // 点击修改或者新增按钮时触发
+    // 点击新增按钮时触发
     const onInsertBook = () => {
+      editMode.value = false;
+      currentBookId.value = null;
       dialogVisible.value = true;
     };
 
@@ -183,6 +197,9 @@ export default defineComponent({
       if (bookEditRef.value) {
         bookEditRef.value.resetForm();
       }
+      // 重置状态
+      editMode.value = false;
+      currentBookId.value = null;
     };
 
     // 处理书籍提交成功
@@ -227,6 +244,9 @@ export default defineComponent({
       showedDataList,
       dialogVisible,
       bookEditRef,
+      editMode,
+      currentBookId,
+      dialogTitle,
       handleDialogClose,
       handleBookSubmitSuccess,
     };

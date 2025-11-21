@@ -59,19 +59,8 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     name: 'LoginView',
     component: () => import(/* webpackChunkName: "login" */ '../views/LoginView.vue')
-  },
-  {
-    path: '/books/edit/:id',
-    name: 'EditBook',
-    //者修改书信息页面
-    component: () => import(/* webpackChunkName: "login" */ '../views/books/BookEdit.vue')
-  },
-  {
-    path: '/books/add',
-    name: 'AddBook',
-    //新增书书信息页面,
-    component: () => import(/* webpackChunkName: "login" */ '../views/books/BookEdit.vue')
   }
+  // 移除原来的编辑和新增书籍路由，因为现在通过弹窗实现
 ]
 
 const router = createRouter({

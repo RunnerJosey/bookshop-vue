@@ -31,6 +31,9 @@ npm run serve
 http://localhost:8081/
 ```
 
+登录界面：
+http://localhost:8080/login
+
 就可以进入系统
 
 ## 界面展示

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2 v-if="!isDialogMode">{{ isEdit ? '编辑书籍' : '新增书籍' }}</h2>
+    <h2 v-if="!isDialogMode">{{ editMode ? '编辑书籍' : '新增书籍' }}</h2>
     <el-form
         :model="book"
         :rules="rules"
@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref, onMounted } from 'vue';
+import { defineComponent, reactive, ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { IGoods } from "@/type/goods";
 import type { FormInstance } from 'element-plus';
@@ -44,6 +44,14 @@ export default defineComponent({
     isDialogMode: {
       type: Boolean,
       default: false
+    },
+    editMode: {
+      type: Boolean,
+      default: false
+    },
+    bookId: {
+      type: Number,
+      default: null
     }
   },
   emits: ['submit-success'],
@@ -51,7 +59,6 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
     const bookForm = ref<FormInstance>();
-    const isEdit = ref(false);
 
     // 初始化表单数据
     const book = reactive<IGoods>({
@@ -85,7 +92,7 @@ export default defineComponent({
     });
 
     // 获取书籍详情
-    const getBookDetail = async (id: string) => {
+    const loadBookDetail = async (id: number) => {
       try {
         const res = await getBookById(id);
         if (res?.data?.records?.[0]) {
@@ -100,12 +107,28 @@ export default defineComponent({
       }
     };
 
-    // 组件挂载时获取数据
+    // 监听bookId变化，在编辑模式下加载数据
+    watch(
+      () => props.bookId,
+      (newId) => {
+        if (props.editMode && newId) {
+          loadBookDetail(newId);
+        } else if (!props.editMode) {
+          // 新增模式下重置表单
+          resetForm();
+        }
+      },
+      { immediate: true }
+    );
+
+    // 组件挂载时获取数据（保持原有的路由参数方式兼容）
     onMounted(() => {
-      const id = route.params.id;
-      if (id && typeof id === 'string') {
-        isEdit.value = true;
-        getBookDetail(id);
+      // 只有在非弹窗模式下才从路由参数获取数据
+      if (!props.isDialogMode) {
+        const id = route.params.id;
+        if (id && typeof id === 'string') {
+          loadBookDetail(Number(id));
+        }
       }
     });
 
@@ -115,7 +138,7 @@ export default defineComponent({
       await bookForm.value.validate(async (valid) => {
         if (valid) {
           try {
-            if(isEdit.value){
+            if(props.editMode || (!props.isDialogMode && route.params.id)){
               //编辑模式：调用更新接口
               const res = await updateBook(book);
               console.log('updateBook返回：', res);
@@ -159,28 +182,20 @@ export default defineComponent({
       if (!bookForm.value) return;
 
       bookForm.value.resetFields();
-      if (!isEdit.value) {
-        // 新增时重置所有字段
-        Object.assign(book, {
-          id: 0,
-          bookName: '',
-          introduce: '',
-          author: '',
-          creater: '',
-          title: '',
-          userId: undefined,
-          createTime: '',
-          updateTime: '',
-          updater: '',
-          isDelete: '0'
-        });
-      } else {
-        // 编辑时重新获取原始数据
-        const id = route.params.id;
-        if (id && typeof id === 'string') {
-          getBookDetail(id);
-        }
-      }
+      // 重置所有字段
+      Object.assign(book, {
+        id: 0,
+        bookName: '',
+        introduce: '',
+        author: '',
+        creater: '',
+        title: '',
+        userId: undefined,
+        createTime: '',
+        updateTime: '',
+        updater: '',
+        isDelete: '0'
+      });
     };
 
     // 取消表单（仅用于弹窗模式）
@@ -194,7 +209,6 @@ export default defineComponent({
       bookForm,
       book,
       rules,
-      isEdit,
       submitForm,
       resetForm,
       cancelForm
