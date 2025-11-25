@@ -89,17 +89,31 @@ export default defineComponent({
         if (isValid) {
           login(data.ruleForm).then((res) => {
             console.log(res)
-            // 将token进行保存
-            // localStorage.setItem("token", res.data.token)
-            // 跳转页面
-            ElMessage({
-              type: 'success', message: '登录成功！'
-            })
-            router.push('/')
+            // 检查响应格式
+            if (res && res.data) {
+              localStorage.setItem("token", res.data)
+              // 跳转页面
+              ElMessage({
+                type: 'success', message: '登录成功！'
+              })
+              router.push('/')
+            } else {
+              ElMessage({
+                type: 'warning', message: '登录失败，服务器响应格式错误！'
+              })
+            }
           }).catch(e => {
-            ElMessage({
-              type: 'warning', message: '登录失败，用户名或密码错误！'
-            })
+            console.error('Login error:', e)
+            // 根据不同的错误类型显示不同的消息
+            if (e && e.message) {
+              ElMessage({
+                type: 'warning', message: `登录失败: ${e.message}`
+              })
+            } else {
+              ElMessage({
+                type: 'warning', message: '登录失败，用户名或密码错误！'
+              })
+            }
           })
         } else {
           console.log('error submit!')

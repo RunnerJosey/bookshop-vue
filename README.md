@@ -30,6 +30,7 @@ npm run serve
 ```xml
 http://localhost:8081/
 ```
+admin/pass2025
 
 登录界面：
 http://localhost:8080/login

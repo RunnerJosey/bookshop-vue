@@ -170,15 +170,16 @@ export default defineComponent({
       ).then(async () => {
         try {
           const res = await deleteBook([id]);
-          console.log('delete bok 返回：', res);
+          console.log('delete book 返回：', res);
           if (res === true) {
             ElMessage.success('删除成功');
             p_getGoodsList(); // 重新获取列表
           } else {
             ElMessage.error(res.message || '删除失败');
           }
-        } catch (error) {
-          ElMessage.error('删除失败');
+        } catch (error: any) {
+          console.error('删除书籍失败:', error);
+          ElMessage.error('删除失败: ' + (error.message || '未知错误'));
         }
       }).catch(() => {
         // 用户取消，无需处理

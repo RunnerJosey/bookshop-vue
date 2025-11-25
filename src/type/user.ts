@@ -8,8 +8,15 @@ export interface IUser {
     userName: string  // 用户名
 }
 
+// 分页接口
+export interface IPage {
+    current_page: number;
+    data_count: number;
+    single_page_size: number;
+}
+
 // 用户查询接口
-export interface IQueryUser{
+export interface IQueryUser extends IPage {
     nickName: string,  // 用户别名
     role: number  // 角色编号
 }
@@ -27,11 +34,14 @@ export class UserPages{
     // 没有做分页是因为,用户和角色数据往往比较少
     selected_data: IQueryUser = {
         nickName: "",
-        role: 0
+        role: 0,
+        current_page: 1,
+        data_count: 0,
+        single_page_size: 10
     }
     user_list: IUser[] = []   // 用户列表
     role_with_auth_list: IRoleWithAuth[] = []   // 角色列表
-    editShow = false  // 是否显示编辑用户弹出窗
+    
     // 编辑用户时用到的对象
     editUser: IUserEdit = {
         id: 0,

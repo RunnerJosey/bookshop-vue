@@ -31,20 +31,27 @@ service.interceptors.request.use((config) => {
     return config;
     },
     error => {
+        console.error('Request error:', error);
         return Promise.reject(error);
     });
 
 // 响应拦截
 service.interceptors.response.use((response) => {
     const data = response.data;
-    const code: number = data.code;
-    console.log('Response interceptor:', data); // 调试信息
-    if (code !== 200) {
-        return Promise.reject(data);
+    // 检查是否存在code字段
+    if (Object.prototype.hasOwnProperty.call(data, 'code')) {
+        const code: number = data.code;
+        console.log('Response interceptor:', data); // 调试信息
+        if (code !== 200) {
+            return Promise.reject(data);
+        }
+        return data;
     }
+    
+    // 如果没有code字段，直接返回数据
     return data;
 }, (err) => {
-    console.log(err);
+    console.error('Response error:', err);
     return Promise.reject(err);
 });
 
