@@ -4,7 +4,7 @@ import {IRole, IRoleWithAuth} from "@/type/role";
 export interface IUser {
     id: number,  // 用户id
     nickName: string,  // 用户昵称
-    role: IRole[],   // 用户角色, 可能有多个,所以是数组
+    roles: string[],   // 用户角色, 可能有多个,所以是数组
     userName: string  // 用户名
 }
 
@@ -25,8 +25,19 @@ export interface IQueryUser extends IPage {
 export interface IUserEdit {
     id: number,  // 用户id
     nickName: string,  // 用户昵称
-    role: number[],   // 用户角色
+    roles: string[],   // 用户角色
     userName: string  // 用户名
+}
+
+// 新增用户接口
+export interface IAddUser {
+    userName: string,  // 用户名
+    password: string,  // 密码
+    sex: string,      // 性别
+    phone: string,    // 电话
+    email: string,    // 邮箱
+    birthday: string, // 生日
+    nickName: string  // 昵称
 }
 
 // 用户具体展示数据
@@ -46,7 +57,18 @@ export class UserPages{
     editUser: IUserEdit = {
         id: 0,
         nickName: "",
-        role: [],
+        roles: [],
         userName: ""
+    }
+    
+    // 新增用户时用到的对象
+    addUser: IAddUser = {
+        userName: "",
+        password: "",
+        sex: "1",
+        phone: "",
+        email: "",
+        birthday: "",
+        nickName: ""
     }
 }

@@ -52,8 +52,8 @@ export default defineComponent({
           trigger: "blur"   // 触发时机: 当失去焦点时（光标不显示的时候），触发此提示
         },
         {
-          min: 3,   // 最小字符书
-          max: 5,   // 最大字符数
+          min: 1,   // 最小字符书
+          max: 20,   // 最大字符数
           message: "用户名长度需要在3-5个字符之间",  // 触发的提示信息
           trigger: "blur"
         }
@@ -87,10 +87,10 @@ export default defineComponent({
       if (!formEl) return
       formEl.validate((isValid: boolean) => {
         if (isValid) {
-          login(data.ruleForm).then((res) => {
+          login(data.ruleForm).then((res: any) => {
             console.log(res)
             // 检查响应格式
-            if (res && res.data) {
+            if (res && res.code === 200 && res.data) {
               localStorage.setItem("token", res.data)
               // 跳转页面
               ElMessage({

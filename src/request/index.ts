@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const mockType = 'cbzMock'  // fastMock
-const baseURL = mockType === 'cbzMock' ? 'http://localhost:8083/api' : 'https://www.fastmock.site/mock/bf1fcb3c2e2945669c2c8d0ecb8009b8/api'
+const baseURL = mockType === 'cbzMock' ? 'http://localhost:8083' : 'https://www.fastmock.site/mock/bf1fcb3c2e2945669c2c8d0ecb8009b8/api'
 //创建axios实例
 const service = axios.create({
-    baseURL: "http://localhost:8083",
+    baseURL: baseURL,
     timeout: 5000,
     headers: {
         "Content-type" : "application/json;charset=utf-8"
@@ -52,6 +52,15 @@ service.interceptors.response.use((response) => {
     return data;
 }, (err) => {
     console.error('Response error:', err);
+    
+    // 特殊处理登录接口的网络错误
+    if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
+        return Promise.reject({
+            message: '网络连接超时，请检查网络设置',
+            code: -1
+        });
+    }
+    
     return Promise.reject(err);
 });
 

@@ -33,10 +33,10 @@
     <el-table :data="showedDataList.compDataList" border style="width: 100%">
       <el-table-column prop="serialNumber" label="编号" width="180" />
       <el-table-column prop="nickName" label="用户昵称" width="180" />
-      <el-table-column prop="role" label="用户角色" >
+      <el-table-column prop="roles" label="用户角色" >
         <template #default="scope">
-          <span v-for="item in scope.row.roles" :key="item.role" style="margin-right: 5px;">
-            {{ item.roleName }}
+          <span v-for="(role, index) in scope.row.roles" :key="index" style="margin-right: 5px;">
+            {{ role }}
           </span>
         </template>
       </el-table-column>
@@ -63,20 +63,78 @@
 
     <!-- 新增/编辑用户弹窗 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="handleDialogClose">
-      <el-form :model="editUser" :rules="userRules" ref="userFormRef" label-width="100px">
+      <!-- 编辑用户表单 -->
+      <el-form v-if="isEditMode" :model="editUser" :rules="userRules" ref="userFormRef" label-width="100px">
         <el-form-item label="用户昵称" prop="nickName">
           <el-input v-model="editUser.nickName" placeholder="请输入用户昵称"></el-input>
         </el-form-item>
 
-        <el-form-item label="用户角色" prop="role">
-          <el-select multiple v-model="editUser.role" class="m-2" size="large" placeholder="请选择角色">
+        <el-form-item label="用户角色">
+          <el-tag
+            v-for="(role, index) in editUser.roles"
+            :key="index"
+            closable
+            @close="handleRoleClose(index)"
+            style="margin-right: 10px;"
+          >
+            {{ role }}
+          </el-tag>
+          
+          <!-- 角色选择下拉框 -->
+          <el-select 
+            v-model="selectedRole" 
+            placeholder="请选择角色" 
+            style="width: 200px; margin-top: 10px;"
+            @change="addRole"
+          >
             <el-option
-                v-for="item in role_with_auth_list"
-                :key="item.roleId"
-                :label="item.roleName"
-                :value="item.roleId"
-            />
+              v-for="item in availableRoles"
+              :key="item.roleName"
+              :label="item.roleName"
+              :value="item.roleName">
+            </el-option>
           </el-select>
+        </el-form-item>
+      </el-form>
+      
+      <!-- 新增用户表单 -->
+      <el-form v-else :model="user_data.addUser" :rules="addUserRules" ref="addFormRef" label-width="100px">
+        <el-form-item label="用户名" prop="userName">
+          <el-input v-model="user_data.addUser.userName" placeholder="请输入用户名"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="user_data.addUser.password" type="password" placeholder="请输入密码"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="昵称" prop="nickName">
+          <el-input v-model="user_data.addUser.nickName" placeholder="请输入昵称"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="性别" prop="sex">
+          <el-radio-group v-model="user_data.addUser.sex">
+            <el-radio label="1">男</el-radio>
+            <el-radio label="0">女</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        
+        <el-form-item label="电话" prop="phone">
+          <el-input v-model="user_data.addUser.phone" placeholder="请输入电话号码"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="user_data.addUser.email" placeholder="请输入邮箱地址"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="生日" prop="birthday">
+          <el-date-picker 
+            v-model="user_data.addUser.birthday" 
+            type="date" 
+            placeholder="请选择生日" 
+            format="YYYY-MM-DD" 
+            value-format="YYYY-MM-DD"
+            style="width: 100%">
+          </el-date-picker>
         </el-form-item>
       </el-form>
       
@@ -94,16 +152,25 @@
 import {defineComponent, onMounted, reactive, toRefs, watch, ref, computed} from 'vue';
 import {addUser, deleteUser, getRoleList, getUserList} from "@/request/api";
 import {updateUser} from "@/request/api";
-import {IUser, UserPages, IUserEdit} from "@/type/user";
+import {IUser, UserPages, IUserEdit, IAddUser} from "@/type/user";
 import { ElMessageBox, ElMessage, FormInstance } from 'element-plus';
 
 export default defineComponent({
   setup () {
     const user_data = reactive(new UserPages())
     const userFormRef = ref<FormInstance>();
+    const addFormRef = ref<FormInstance>();
     const dialogVisible = ref(false);
     const isEditMode = ref(false);
+    const selectedRole = ref('') // 用于角色选择
     const dialogTitle = computed(() => isEditMode.value ? '编辑用户' : '新增用户');
+    
+    // 计算可用角色（排除已选择的角色）
+    const availableRoles = computed(() => {
+      return user_data.role_with_auth_list.filter(role => 
+        !user_data.editUser.roles.includes(role.roleName)
+      );
+    });
 
     // 表单验证规则
     const userRules = {
@@ -112,6 +179,31 @@ export default defineComponent({
       ],
       role: [
         { required: true, message: '请选择用户角色', trigger: 'change' }
+      ]
+    };
+    
+    // 新增用户表单验证规则
+    const addUserRules = {
+      userName: [
+        { required: true, message: '请输入用户名', trigger: 'blur' }
+      ],
+      password: [
+        { required: true, message: '请输入密码', trigger: 'blur' }
+      ],
+      nickName: [
+        { required: true, message: '请输入昵称', trigger: 'blur' }
+      ],
+      sex: [
+        { required: true, message: '请选择性别', trigger: 'change' }
+      ],
+      phone: [
+        { required: true, message: '请输入电话号码', trigger: 'blur' }
+      ],
+      email: [
+        { required: true, message: '请输入邮箱地址', trigger: 'blur' }
+      ],
+      birthday: [
+        { required: true, message: '请选择生日', trigger: 'change' }
       ]
     };
 
@@ -205,13 +297,29 @@ export default defineComponent({
     const onAddUser = () => {
       isEditMode.value = false;
       // 重置表单数据
-      user_data.editUser = {
-        id: 0,
-        nickName: "",
-        role: [],
-        userName: ""
+      user_data.addUser = {
+        userName: "",
+        password: "",
+        sex: "1",
+        phone: "",
+        email: "",
+        birthday: "",
+        nickName: ""
       };
       dialogVisible.value = true;
+    };
+
+    // 处理角色标签关闭
+    const handleRoleClose = (index: number) => {
+      user_data.editUser.roles.splice(index, 1);
+    };
+    
+    // 添加角色
+    const addRole = (roleName: string) => {
+      if (roleName && !user_data.editUser.roles.includes(roleName)) {
+        user_data.editUser.roles.push(roleName);
+        selectedRole.value = ''; // 清空选择
+      }
     };
 
     // 编辑用户
@@ -220,7 +328,7 @@ export default defineComponent({
       user_data.editUser = {
         id: row.id,
         nickName: row.nickName,
-        role: row.role ? row.role.map((value) => value.role) : [],
+        roles: Array.isArray(row.roles) ? [...row.roles] : [], // 安全地复制角色数组
         userName: row.userName
       };
       dialogVisible.value = true;
@@ -252,43 +360,56 @@ export default defineComponent({
 
     // 提交用户表单
     const submitUserForm = async () => {
-      if (!userFormRef.value) return;
-      await userFormRef.value.validate(async (valid) => {
-        if (valid) {
-          if (isEditMode.value) {
-            // 编辑模式
+      if (isEditMode.value) {
+        // 编辑模式
+        if (!userFormRef.value) return;
+        await userFormRef.value.validate(async (valid) => {
+          if (valid) {
             try {
               await updateUser(user_data.editUser);
               ElMessage.success('用户更新成功');
               p_getUserList(); // 重新加载用户列表
-            } catch (error) {
+            } catch (error: any) {
               console.error('更新用户失败:', error);
               ElMessage.error('更新用户失败: ' + (error.message || '未知错误'));
             }
+            
+            dialogVisible.value = false;
+            ElMessage.success('更新成功');
           } else {
-            // 新增模式
+            ElMessage.warning('请填写必填项');
+          }
+        });
+      } else {
+        // 新增模式
+        if (!addFormRef.value) return;
+        await addFormRef.value.validate(async (valid) => {
+          if (valid) {
             try {
-              await addUser(user_data.editUser);
+              await addUser(user_data.addUser);
               ElMessage.success('用户添加成功');
               p_getUserList(); // 重新加载用户列表
-            } catch (error) {
+            } catch (error: any) {
               console.error('添加用户失败:', error);
               ElMessage.error('添加用户失败: ' + (error.message || '未知错误'));
             }
+            
+            dialogVisible.value = false;
+            ElMessage.success('新增成功');
+          } else {
+            ElMessage.warning('请填写必填项');
           }
-          
-          dialogVisible.value = false;
-          ElMessage.success(isEditMode.value ? '更新成功' : '新增成功');
-        } else {
-          ElMessage.warning('请填写必填项');
-        }
-      });
+        });
+      }
     };
 
     // 处理弹窗关闭
     const handleDialogClose = () => {
       if (userFormRef.value) {
         userFormRef.value.resetFields();
+      }
+      if (addFormRef.value) {
+        addFormRef.value.resetFields();
       }
     };
 
@@ -304,9 +425,14 @@ export default defineComponent({
     )
 
     return {
+      user_data,
+      selectedRole,
+      availableRoles,
       ...toRefs(user_data),
       userRules,
+      addUserRules,
       userFormRef,
+      addFormRef,
       dialogVisible,
       isEditMode,
       dialogTitle,
@@ -317,6 +443,8 @@ export default defineComponent({
       onDeleteUser,
       submitUserForm,
       handleDialogClose,
+      handleRoleClose,
+      addRole,
       currentChange,
       sizeChange
     }

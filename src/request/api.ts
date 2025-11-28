@@ -1,7 +1,8 @@
 import service from "@/request/index";
 import {ILoginData} from "@/type/login";
 import { IGoods } from '@/type/goods';
-import { IRoleEdit, IUserEdit } from '@/type/role';
+import { IRoleEdit } from '@/type/role';
+import { IUserEdit } from '@/type/user';
 
 // 登录接口
 export function login(data: ILoginData) {
@@ -80,10 +81,10 @@ export function getUserById(id: number | string){
     })
 }
 
-// 新增用户
-export function addUser(data: IUserEdit) {
+// 新增用户，用户注册
+export function addUser(data: any) {
     return service({
-        url: "/user/add",
+        url: "/user/register",
         method: "POST",
         data
     }).then(res => res.data); // 返回后端完整对象
