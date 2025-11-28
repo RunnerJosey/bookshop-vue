@@ -5,7 +5,11 @@ export interface IUser {
     id: number,  // 用户id
     nickName: string,  // 用户昵称
     roles: string[],   // 用户角色, 可能有多个,所以是数组
-    userName: string  // 用户名
+    userName: string,  // 用户名
+    sex: string, //性别
+    phone: string,  // 电话
+    email: string,  // 邮箱
+    birthday: string
 }
 
 // 分页接口
@@ -26,7 +30,11 @@ export interface IUserEdit {
     id: number,  // 用户id
     nickName: string,  // 用户昵称
     roles: string[],   // 用户角色
-    userName: string  // 用户名
+    userName: string,  // 用户名
+    sex: string,      // 性别
+    phone: string,    // 电话
+    email: string,    // 邮箱
+    birthday: string // 生日
 }
 
 // 新增用户接口
@@ -58,7 +66,11 @@ export class UserPages{
         id: 0,
         nickName: "",
         roles: [],
-        userName: ""
+        userName: "",
+        sex: "",
+        phone: "",
+        email: "",
+        birthday: ""
     }
     
     // 新增用户时用到的对象

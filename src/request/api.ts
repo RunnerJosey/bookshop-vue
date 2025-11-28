@@ -140,20 +140,36 @@ export function addRole(data: IRoleEdit) {
 
 // 修改角色
 export function updateRole(data: IRoleEdit ){
+    // 只传递需要更新的字段，不包含ID
+    const requestData = {
+        id: data.id,
+        roleName: data.roleName,
+        description: data.description,
+        authority: data.authority
+    };
+    
+    // 确保ID是数字类型用于URL
+    const roleId = typeof data.id === 'string' ? parseInt(data.id, 10) : data.id;
+    
     return service({
-        url: "/role/update",
+        url: `/role/update`,  // 在URL中包含角色ID
         method: "PUT",
-        data
+        data: requestData
     }).then(res => res.data);//只返回后端数据
 }
 
 // 删除角色
 export function deleteRole(idList: (number | string)[]) {
+    // 确保所有ID都是数字类型
+    const numericIdList = idList.map(id => 
+        typeof id === 'string' ? parseInt(id, 10) : id
+    );
+    
     return service({
         url: "/role/delete",
         method: "DELETE",
         params: {
-            idList: idList.join(',')  // 将数组转换为逗号分隔的字符串
+            idList: numericIdList.join(',')  // 将数组转换为逗号分隔的字符串
         }
     }).then(res => res.data);
 }

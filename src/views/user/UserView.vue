@@ -31,8 +31,12 @@
     </el-form>
 
     <el-table :data="showedDataList.compDataList" border style="width: 100%">
-      <el-table-column prop="serialNumber" label="编号" width="180" />
+      <el-table-column prop="serialNumber" label="编号" width="60" />
+      <el-table-column prop="userName" label="用户名" width="180" />
       <el-table-column prop="nickName" label="用户昵称" width="180" />
+      <el-table-column prop="phone" label="手机" width="180" />
+      <el-table-column prop="email" label="邮箱" width="180" />
+      <el-table-column prop="birthday" label="生日" width="180" />
       <el-table-column prop="roles" label="用户角色" >
         <template #default="scope">
           <span v-for="(role, index) in scope.row.roles" :key="index" style="margin-right: 5px;">
@@ -65,9 +69,30 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="handleDialogClose">
       <!-- 编辑用户表单 -->
       <el-form v-if="isEditMode" :model="editUser" :rules="userRules" ref="userFormRef" label-width="100px">
+        <el-form-item label="用户名" prop="nickName">
+          <el-input v-model="editUser.userName" placeholder="请输入用户名"></el-input>
+        </el-form-item>
         <el-form-item label="用户昵称" prop="nickName">
           <el-input v-model="editUser.nickName" placeholder="请输入用户昵称"></el-input>
         </el-form-item>
+        <el-form-item label="手机" prop="nickName">
+          <el-input v-model="editUser.phone" placeholder="请输入手机"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="nickName">
+          <el-input v-model="editUser.email" placeholder="请输入邮箱"></el-input>
+        </el-form-item>
+
+        <el-form-item label="生日" prop="birthday">
+          <el-date-picker
+              v-model="user_data.addUser.birthday"
+              type="date"
+              placeholder="请选择生日"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              style="width: 100%">
+          </el-date-picker>
+        </el-form-item>
+
 
         <el-form-item label="用户角色">
           <el-tag
@@ -174,8 +199,17 @@ export default defineComponent({
 
     // 表单验证规则
     const userRules = {
+      userName: [
+        { required: true, message: '请输入用户名', trigger: 'blur' }
+      ],
       nickName: [
         { required: true, message: '请输入用户昵称', trigger: 'blur' }
+      ],
+      phone: [
+        { required: true, message: '请输入手机', trigger: 'blur' }
+      ],
+      email: [
+        { required: true, message: '请输入邮箱', trigger: 'blur' }
       ],
       role: [
         { required: true, message: '请选择用户角色', trigger: 'change' }
@@ -225,7 +259,13 @@ export default defineComponent({
       }).then((res: any) => {
         // 适配新的数据结构 {code: 200, data: {records: [...], ...}, message: "success"}
         if (res && res.code === 200 && res.data && Array.isArray(res.data.records)) {
-          user_data.user_list = res.data.records;
+          // 将ID转换为字符串以避免精度问题
+          const processedRecords = res.data.records.map((record: any) => ({
+            ...record,
+            id: record.id.toString() // 转换为字符串
+          }));
+          
+          user_data.user_list = processedRecords;
           user_data.selected_data.data_count = res.data.total;
         } else {
           console.error("API 数据格式不正确:", res);
@@ -329,7 +369,11 @@ export default defineComponent({
         id: row.id,
         nickName: row.nickName,
         roles: Array.isArray(row.roles) ? [...row.roles] : [], // 安全地复制角色数组
-        userName: row.userName
+        userName: row.userName,
+        sex: row.sex || "",
+        phone: row.phone || "",
+        email: row.email || "",
+        birthday: row.birthday || ""
       };
       dialogVisible.value = true;
     };
@@ -346,7 +390,9 @@ export default defineComponent({
         }
       ).then(async () => {
         try {
-          await deleteUser([id]);
+          // 确保ID是数字类型
+          const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+          await deleteUser([numericId]);
           ElMessage.success('删除成功');
           p_getUserList(); // 重新加载用户列表
         } catch (error: any) {
@@ -366,7 +412,15 @@ export default defineComponent({
         await userFormRef.value.validate(async (valid) => {
           if (valid) {
             try {
-              await updateUser(user_data.editUser);
+              // 确保ID是数字类型
+              const userData = {
+                ...user_data.editUser,
+                id: typeof user_data.editUser.id === 'string' 
+                  ? parseInt(user_data.editUser.id, 10) 
+                  : user_data.editUser.id
+              };
+              
+              await updateUser(userData);
               ElMessage.success('用户更新成功');
               p_getUserList(); // 重新加载用户列表
             } catch (error: any) {

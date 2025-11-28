@@ -17,6 +17,7 @@
     <el-table :data="showedDataList.compDataList" border style="width: 100%">
       <el-table-column prop="serialNumber" label="编号" width="180" />
       <el-table-column prop="roleName" label="角色名称" width="180" />
+      <el-table-column prop="description" label="角色描述" width="180" />
       <el-table-column label="操作" width="140">
         <template #default="scope">
           <el-button type="primary" size="small" @click="onEditRole(scope.row)" style="margin-right: 5px;">修改</el-button>
@@ -43,6 +44,9 @@
       <el-form :model="editRole" :rules="roleRules" ref="roleFormRef" label-width="100px">
         <el-form-item label="角色名称" prop="roleName">
           <el-input v-model="editRole.roleName" placeholder="请输入角色名称"></el-input>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="roleName">
+          <el-input v-model="editRole.description" placeholder="请输入角色描述"></el-input>
         </el-form-item>
       </el-form>
       
@@ -76,6 +80,9 @@ export default defineComponent({
     const roleRules = {
       roleName: [
         { required: true, message: '请输入角色名称', trigger: 'blur' }
+      ],
+      description: [
+        { required: true, message: '请输入角色描述', trigger: 'blur' }
       ]
     };
 
@@ -91,7 +98,13 @@ export default defineComponent({
       }).then((res: any) => {
         // 适配新的数据结构 {code: 200, data: {records: [...], ...}, message: "success"}
         if (res && res.code === 200 && res.data && Array.isArray(res.data.records)) {
-          role_data.role_list = res.data.records;
+          // 将ID转换为字符串以避免精度问题
+          const processedRecords = res.data.records.map((record: any) => ({
+            ...record,
+            id: record.id.toString() // 转换为字符串
+          }));
+
+          role_data.role_list = processedRecords;
           role_data.selected_data.data_count = res.data.total;
         } else {
           console.error("API 数据格式不正确:", res);
@@ -145,6 +158,7 @@ export default defineComponent({
       role_data.editRole = {
         roleId: 0,
         roleName: "",
+        description: "",
         authority: []
       };
       dialogVisible.value = true;
@@ -154,8 +168,9 @@ export default defineComponent({
     const onEditRole = (row: IRoleWithAuth) => {
       isEditMode.value = true;
       role_data.editRole = {
-        roleId: row.roleId,
+        id: row.id,  // 使用后端返回的id字段
         roleName: row.roleName,
+        description: row.description,
         authority: row.authority
       };
       dialogVisible.value = true;
@@ -193,6 +208,7 @@ export default defineComponent({
           if (isEditMode.value) {
             // 编辑模式
             try {
+              console.log('正在更新角色，传递的数据:', role_data.editRole); // 调试日志
               await updateRole(role_data.editRole);
               ElMessage.success('角色更新成功');
               p_getRoleList(); // 重新加载角色列表
@@ -233,7 +249,7 @@ export default defineComponent({
       router.push({
         name: "AuthorityView",
         params: {
-          id: row.roleId,
+          id: row.id,  // 使用id而不是roleId
           authority: row.authority
         }
       })
@@ -275,31 +291,31 @@ export default defineComponent({
 }
 
 /* 美化分页组件样式 */
-:deep(.el-pagination) {
+.el-pagination ::v-deep() {
   padding: 0;
   font-weight: normal;
 }
 
-:deep(.el-pagination .el-pagination__total) {
+.el-pagination ::v-deep(.el-pagination__total) {
   margin-right: 16px;
 }
 
-:deep(.el-pagination .el-pagination__sizes) {
+.el-pagination ::v-deep(.el-pagination__sizes) {
   margin-right: 16px;
 }
 
-:deep(.el-pagination .btn-prev),
-:deep(.el-pagination .btn-next) {
+.el-pagination ::v-deep(.btn-prev),
+.el-pagination ::v-deep(.btn-next) {
   background: #f4f4f5;
   border-radius: 4px;
 }
 
-:deep(.el-pagination .el-pager li) {
+.el-pagination ::v-deep(.el-pager li) {
   background: #f4f4f5;
   border-radius: 4px;
 }
 
-:deep(.el-pagination .el-pager li.active) {
+.el-pagination ::v-deep(.el-pager li.active) {
   background-color: #409eff;
   color: #fff;
 }
