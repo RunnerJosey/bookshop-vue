@@ -188,7 +188,7 @@ export default defineComponent({
         }
       ).then(async () => {
         try {
-          await deleteRole([id]);
+          await deleteRole([id.toString()]);
           ElMessage.success('删除成功');
           p_getRoleList(); // 重新加载角色列表
         } catch (error: any) {

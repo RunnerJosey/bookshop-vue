@@ -33,7 +33,7 @@ http://localhost:8081/
 admin/pass2025
 
 登录界面：
-http://localhost:8080/login
+http://localhost:8081/login
 
 就可以进入系统
 
@@ -62,5 +62,3 @@ http://localhost:8080/login
 角色列表
 
 ![image-20220625153535530](https://firstbucket-1300448090.cos.ap-chengdu.myqcloud.com/cbz_book_images/image-20220625153535530.png)
-
-

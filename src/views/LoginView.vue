@@ -31,7 +31,7 @@
 <script lang="ts">
 import { LoginData } from "@/type/login";
 import { FormInstance } from "element-plus";
-import { defineComponent, reactive, ref, toRefs } from "vue";
+import { defineComponent, reactive, ref } from "vue";
 import { login } from "@/request/api";
 import { useRouter } from "vue-router";
 import { ElMessage } from 'element-plus'
@@ -54,7 +54,7 @@ export default defineComponent({
         {
           min: 1,   // 最小字符书
           max: 20,   // 最大字符数
-          message: "用户名长度需要在3-5个字符之间",  // 触发的提示信息
+          message: "用户名长度需要在1-20个字符之间",  // 触发的提示信息
           trigger: "blur"
         }
       ],
@@ -65,9 +65,9 @@ export default defineComponent({
           trigger: "blur"   // 触发时机: 当失去焦点时（光标不显示的时候），触发此提示
         },
         {
-          min: 6,   // 最小字符书
+          min: 1,   // 最小字符书
           max: 20,   // 最大字符数
-          message: "密码长度需要在6-20个字符之间",  // 触发的提示信息
+          message: "密码长度需要在1-20个字符之间",  // 触发的提示信息
           trigger: "blur"
         }
       ]
@@ -77,9 +77,9 @@ export default defineComponent({
     const ruleFormRef = ref<FormInstance>()
 
     // 重置
-    const resetForm = () => {
-      data.ruleForm.userName = ""
-      data.ruleForm.password = ""
+    const resetForm = (formEl: FormInstance | undefined) => {
+      if (!formEl) return;
+      formEl.resetFields();
     }
 
     const submitForm = (formEl: FormInstance | undefined) => {
@@ -117,12 +117,15 @@ export default defineComponent({
           })
         } else {
           console.log('error submit!')
+          ElMessage({
+            type: 'warning', message: '请检查输入信息是否正确！'
+          })
         }
       })
     }
 
     return {
-      ...toRefs(data),
+      ruleForm: data.ruleForm,
       rules,
       resetForm,
       submitForm,
@@ -137,15 +140,17 @@ export default defineComponent({
   width: 100%;
   height: 100vh;
   background-image: url("../assets/bg.jpg");
+  background-size: cover;
 }
 
 .form-cls {
   padding: 50px;
   width: 400px;
   margin: 0 auto;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.9);
   position: relative;
-  top: 200px;
+  top: 50%;
+  transform: translateY(-50%);
   border-radius: 4px;
 }
 

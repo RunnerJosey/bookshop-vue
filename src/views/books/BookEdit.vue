@@ -32,7 +32,7 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { IGoods } from "@/type/goods";
+import { IGoods } from "@/type/books";
 import type { FormInstance } from 'element-plus';
 import {getBookById, updateBook,addBook} from '@/request/api';
 import { ElMessage } from 'element-plus';
@@ -108,6 +108,27 @@ export default defineComponent({
       }
     };
 
+    // 重置表单
+    const resetForm = () => {
+      if (!bookForm.value) return;
+
+      bookForm.value.resetFields();
+      // 重置所有字段
+      Object.assign(book, {
+        id: 0,
+        bookName: '',
+        introduce: '',
+        author: '',
+        creater: '',
+        title: '',
+        userId: undefined,
+        createTime: '',
+        updateTime: '',
+        updater: '',
+        isDelete: '0'
+      });
+    };
+
     // 监听bookId变化，在编辑模式下加载数据
     watch(
       () => props.bookId,
@@ -175,27 +196,6 @@ export default defineComponent({
         } else {
           ElMessage.warning('请填写必填项');
         }
-      });
-    };
-
-    // 重置表单
-    const resetForm = () => {
-      if (!bookForm.value) return;
-
-      bookForm.value.resetFields();
-      // 重置所有字段
-      Object.assign(book, {
-        id: 0,
-        bookName: '',
-        introduce: '',
-        author: '',
-        creater: '',
-        title: '',
-        userId: undefined,
-        createTime: '',
-        updateTime: '',
-        updater: '',
-        isDelete: '0'
       });
     };
 

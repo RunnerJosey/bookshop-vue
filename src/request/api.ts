@@ -1,8 +1,9 @@
 import service from "@/request/index";
 import {ILoginData} from "@/type/login";
-import { IGoods } from '@/type/goods';
+import { IGoods } from '@/type/books';
 import { IRoleEdit } from '@/type/role';
 import { IUserEdit } from '@/type/user';
+import { ICartItemEdit } from '@/type/cartItem';
 
 // 登录接口
 export function login(data: ILoginData) {
@@ -173,6 +174,65 @@ export function deleteRole(idList: (number | string)[]) {
         }
     }).then(res => res.data);
 }
+
+// 购物车列表接口
+export function getCartItemList(params?: { current?: number; size?: number; bookName?: string; bookSpec?: string }) {
+    return service({
+        url: "/cartItem/selectPage",
+        method: "GET",
+        params
+    })
+}
+
+// 根据id获取购物车
+export function getCartItemById(id: number | string){
+    return service({
+        url: "/cartItem/getById",
+        method: "GET",
+        params: { id }
+    })
+}
+
+// 新增购物车
+export function addCartItem(data: any) {
+    return service({
+        url: "/cartItem/register",
+        method: "POST",
+        data
+    }).then(res => res.data); // 返回后端完整对象
+}
+
+// 修改购物车
+export function updateCartItem(data: ICartItemEdit ){
+    return service({
+        url: "/cartItem/update",
+        method: "PUT",
+        data
+    }).then(res => res.data);//只返回后端数据
+}
+
+// 删除购物车
+export function deleteCartItem(idList: (number | string)[]) {
+    return service({
+        url: "/cartItem/delete",
+        method: "DELETE",
+        params: {
+            idList: idList.join(',')  // 将数组转换为逗号分隔的字符串
+        }
+    }).then(res => res.data);
+}
+
+// 清空购物车
+export function deleteAllCartItem(idList: (number | string)[]) {
+    return service({
+        url: "/cartItem/deleteAll",
+        method: "DELETE",
+        params: {
+            idList: idList.join(',')  // 将数组转换为逗号分隔的字符串
+        }
+    }).then(res => res.data);
+}
+
 
 // 权限列表接口
 export function getAuthorityList(){

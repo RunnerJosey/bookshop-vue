@@ -62,7 +62,7 @@
 <script lang="ts">
 import { getGoodsList } from '@/request/api';
 import { computed, defineComponent, onMounted, reactive, toRefs, watch, ref } from 'vue';
-import { GoodsPages, IGoods, IQueryGoods } from "@/type/goods";
+import { GoodsPages, IGoods, IQueryGoods } from "@/type/books";
 import { throttle } from 'lodash';
 import { useRouter } from 'vue-router';
 import { getBookById } from '@/request/api' // 你的API路径
@@ -266,6 +266,10 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   padding: 10px 0;
+  position: sticky;
+  bottom: 0;
+  background: white;
+  z-index: 100;
 }
 
 /* 可选：美化分页组件样式 */

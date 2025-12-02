@@ -1,4 +1,6 @@
 import axios from "axios";
+import router from "@/router";
+import { ElMessage } from 'element-plus';
 
 const mockType = 'cbzMock'  // fastMock
 const baseURL = mockType === 'cbzMock' ? 'http://localhost:8083' : 'https://www.fastmock.site/mock/bf1fcb3c2e2945669c2c8d0ecb8009b8/api'
@@ -42,6 +44,19 @@ service.interceptors.response.use((response) => {
     if (Object.prototype.hasOwnProperty.call(data, 'code')) {
         const code: number = data.code;
         console.log('Response interceptor:', data); // 调试信息
+        // 检查是否是登录过期的情况
+        if (code === 500 && data.message === "暂未登录或token已经过期") {
+            // 清除本地token
+            localStorage.removeItem('token');
+            // 显示提示信息
+            ElMessage({
+              message: '登录已过期，请重新登录',
+              type: 'warning'
+            });
+            // 跳转到登录页面
+            router.push('/login');
+            return Promise.reject(data);
+        }
         if (code !== 200) {
             return Promise.reject(data);
         }

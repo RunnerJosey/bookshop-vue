@@ -44,7 +44,17 @@ const routes: Array<RouteRecordRaw> = [
           title: "角色列表隐藏版"
         },
         component: () => import('../views/authority/AuthorityView.vue')
-      }
+      },
+      {
+        path: 'cartItem',
+        name: 'cartItemView',
+        meta: {
+          isShow: true,  // 是否需要被展示出来
+          title: "购物车列表"
+        },
+        component: () => import('../views/cartItem/CartItemView.vue')
+      },
+
     ]
   },
   {

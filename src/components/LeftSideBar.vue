@@ -5,7 +5,7 @@
       class="el-menu-vertical-demo"
       :default-active="active_menu"
       text-color="#fff"
-      style="width: 220px;height: calc(100vh - 59px)"
+      style="width: 220px; height: calc(100vh - 59px); position: fixed; overflow-y: auto;"
       router
   >
 <!--   router开启路由模式, 通过下面的index进行路由跳转 -->
@@ -34,5 +34,13 @@ export default defineComponent({
 </script>
 
 <style scoped>
+/* 添加滚动条样式 */
+.el-menu-vertical-demo::-webkit-scrollbar {
+  width: 6px;
+}
 
+.el-menu-vertical-demo::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
 </style>
