@@ -196,7 +196,7 @@ export function getCartItemById(id: number | string){
 // 新增购物车
 export function addCartItem(data: any) {
     return service({
-        url: "/cartItem/register",
+        url: "/cartItem/add",
         method: "POST",
         data
     }).then(res => res.data); // 返回后端完整对象

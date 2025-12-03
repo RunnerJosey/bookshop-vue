@@ -29,6 +29,7 @@
         <template #default="scope">
         <el-button type="primary" size="small" @click="onEditBook(scope.row.id)" style="margin-right: 5px;">修改</el-button>
           <el-button type="danger" size="small" @click="onDeleteBook(scope.row.id)">删除</el-button>
+          <el-button type="warning" size="small" @click="onAddToCart(scope.row)">加入购物车</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -56,19 +57,79 @@
         @submit-success="handleBookSubmitSuccess" 
       />
     </el-dialog>
+
+    <!-- 加入购物车弹窗 -->
+    <el-dialog v-model="cartDialogVisible" title="加入购物车" width="500px">
+      <el-form
+          :model="cartFormData"
+          :rules="cartItemRules"
+          ref="cartItemFormRef"
+          label-width="100px">
+        <el-form-item label="书籍名称">
+          <el-input v-model="cartFormData.bookName" disabled></el-input>
+        </el-form-item>
+        
+        <el-form-item label="书籍详情">
+          <el-input v-model="cartFormData.introduce" disabled type="textarea"></el-input>
+        </el-form-item>
+
+        <!-- 隐藏式表单 -->
+        <el-form-item label="用户ID" prop="userId"  v-show="false" >
+          <el-input
+              v-model.number="cartFormData.userId"
+              placeholder="请输入用户ID">
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="书籍SKU ID" prop="bookId"  v-show="false" >
+          <el-input
+              v-model="cartFormData.bookId"
+              placeholder="请输入书籍SKU ID"
+              disabled>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="数量" prop="quantity">
+          <el-input-number
+              v-model="cartFormData.quantity"
+              :min="1"
+              controls-position="right"
+              style="width: 100%">
+          </el-input-number>
+        </el-form-item>
+
+        <el-form-item label="是否选中" prop="selected"  v-show="false">
+          <el-switch
+              v-model="cartFormData.selected"
+              :active-value="1"
+              :inactive-value="0"
+              active-text="是"
+              inactive-text="否">
+          </el-switch>
+        </el-form-item>
+
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="cartDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitCartItemForm">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
 <script lang="ts">
-import { getGoodsList } from '@/request/api';
+import { getGoodsList, addCartItem } from '@/request/api';
 import { computed, defineComponent, onMounted, reactive, toRefs, watch, ref } from 'vue';
 import { GoodsPages, IGoods, IQueryGoods } from "@/type/books";
 import { throttle } from 'lodash';
 import { useRouter } from 'vue-router';
 import { getBookById } from '@/request/api' // 你的API路径
-import { ElForm } from 'element-plus';
+import { ElForm, ElMessageBox, ElMessage } from 'element-plus';
 import { deleteBook } from '@/request/api';
-import { ElMessageBox, ElMessage } from 'element-plus';
 import BookEdit from './BookEdit.vue';
 
 export default defineComponent({
@@ -79,10 +140,48 @@ export default defineComponent({
     const goods_data = reactive(new GoodsPages());
     const router = useRouter();
     const dialogVisible = ref(false);
+    const cartDialogVisible = ref(false);
     const bookEditRef = ref<InstanceType<typeof BookEdit> | null>(null);
+    const cartItemFormRef = ref<InstanceType<typeof ElForm> | null>(null);
     const editMode = ref(false); // false为新增，true为编辑
     const currentBookId = ref<number | null>(null);
     const dialogTitle = computed(() => editMode.value ? '编辑书籍' : '新增书籍');
+    
+    // 购物车表单数据
+    const cartFormData = reactive({
+      userId: 0,
+      bookId: "",
+      specId: "",
+      bookName: "",
+      introduce: "",
+      bookSpec: "",
+      quantity: 1,
+      price: 0,
+      selected: 0
+    });
+
+    // 表单验证规则
+    const cartItemRules = {
+      userId: [
+        { required: true, message: '请输入用户ID', trigger: 'blur' },
+        { type: 'number', message: '用户ID必须为数字', trigger: 'blur' }
+      ],
+      bookId: [
+        { required: true, message: '请输入书籍SKU ID', trigger: 'blur' }
+      ],
+      specId: [
+        { required: true, message: '请输入书籍规格ID', trigger: 'blur' }
+      ],
+      bookSpec: [
+        { required: true, message: '请输入书籍规格', trigger: 'blur' }
+      ],
+      quantity: [
+        { required: true, message: '请输入数量', trigger: 'blur' }
+      ],
+      price: [
+        { required: true, message: '请输入单价', trigger: 'blur' }
+      ]
+    };
 
     onMounted(() => {
       p_getGoodsList();
@@ -192,6 +291,53 @@ export default defineComponent({
       currentBookId.value = null;
       dialogVisible.value = true;
     };
+    
+    // 点击加入购物车按钮时触发
+    const onAddToCart = (row: IGoods) => {
+      // 填充表单数据
+      cartFormData.userId = 0;
+      cartFormData.bookId = row.id?.toString() || "";
+      cartFormData.specId = "";
+      cartFormData.bookName = row.bookName || "";
+      cartFormData.introduce = row.introduce || "";
+      cartFormData.bookSpec = "";
+      cartFormData.quantity = 1;
+      cartFormData.price = 0;
+      cartFormData.selected = 0;
+      
+      cartDialogVisible.value = true;
+    };
+    
+    // 提交购物车表单
+    const submitCartItemForm = async () => {
+      if (!cartItemFormRef.value) return;
+      await cartItemFormRef.value.validate(async (valid) => {
+        if (valid) {
+          try {
+            // 准备提交数据
+            const cartData = {
+              userId: cartFormData.userId,
+              bookId: cartFormData.bookId,
+              specId: cartFormData.specId,
+              bookName: cartFormData.bookName,
+              bookSpec: cartFormData.bookSpec,
+              quantity: cartFormData.quantity,
+              price: cartFormData.price,
+              selected: cartFormData.selected
+            };
+            
+            await addCartItem(cartData);
+            ElMessage.success('已加入购物车');
+            cartDialogVisible.value = false;
+          } catch (error: any) {
+            console.error('加入购物车失败:', error);
+            ElMessage.error('加入购物车失败: ' + (error.message || '未知错误'));
+          }
+        } else {
+          ElMessage.warning('请填写必填项');
+        }
+      });
+    };
 
     // 处理弹窗关闭
     const handleDialogClose = () => {
@@ -236,20 +382,26 @@ export default defineComponent({
 
     return {
       ...toRefs(goods_data),
+      cartFormData,
+      cartItemRules,
       onInsertBook,
       onEditBook,
       onDeleteBook,
+      onAddToCart,
       onSearchGoods,
       currentChange,
       sizeChange,
       showedDataList,
       dialogVisible,
+      cartDialogVisible,
       bookEditRef,
+      cartItemFormRef,
       editMode,
       currentBookId,
       dialogTitle,
       handleDialogClose,
       handleBookSubmitSuccess,
+      submitCartItemForm
     };
   }
 });

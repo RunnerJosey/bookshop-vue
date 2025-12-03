@@ -50,7 +50,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'cartItemView',
         meta: {
           isShow: true,  // 是否需要被展示出来
-          title: "购物车列表"
+          title: "我的购物车"
         },
         component: () => import('../views/cartItem/CartItemView.vue')
       },

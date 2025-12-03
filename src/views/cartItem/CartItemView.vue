@@ -20,7 +20,7 @@
 
     <el-table :data="showedDataList.compDataList" border style="width: 100%">
       <el-table-column prop="serialNumber" label="编号" width="60" />
-      <el-table-column prop="userId" label="用户ID" width="100" />
+      <el-table-column prop="userId" label="用户ID" width="100" v-if="false" />
       <el-table-column prop="bookName" label="书籍名称" width="150" />
       <el-table-column prop="bookSpec" label="书籍规格" width="150" />
       <el-table-column prop="quantity" label="数量" width="80" />
@@ -57,65 +57,65 @@
 
     <!-- 新增/编辑购物车弹窗 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="handleDialogClose">
-      <el-form 
-        :model="formData" 
-        :rules="cartItemRules" 
-        ref="cartItemFormRef" 
+      <el-form
+        :model="formData"
+        :rules="cartItemRules"
+        ref="cartItemFormRef"
         label-width="100px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input 
-            v-model.number="formData.userId" 
-            placeholder="请输入用户ID">
+        <el-form-item label="用户ID" prop="userId" v-show="false">
+          <el-input
+            v-model.number="formData.userId"
+            placeholder="请输入用户ID" >
           </el-input>
         </el-form-item>
-        
-        <el-form-item label="书籍SKU ID" prop="bookId">
-          <el-input 
-            v-model="formData.bookId" 
+
+        <el-form-item label="书籍SKU ID" prop="bookId" v-show="false">
+          <el-input
+            v-model="formData.bookId"
             placeholder="请输入书籍SKU ID">
           </el-input>
         </el-form-item>
-        
-        <el-form-item label="书籍规格ID" prop="specId">
-          <el-input 
-            v-model="formData.specId" 
+
+        <el-form-item label="书籍规格ID" prop="specId" v-show="false">
+          <el-input
+            v-model="formData.specId"
             placeholder="请输入书籍规格ID">
           </el-input>
         </el-form-item>
-        
+
         <el-form-item label="书籍名称" prop="bookName">
-          <el-input 
-            v-model="formData.bookName" 
+          <el-input
+            v-model="formData.bookName"
             placeholder="请输入书籍名称">
           </el-input>
         </el-form-item>
-        
+
         <el-form-item label="书籍规格" prop="bookSpec">
-          <el-input 
-            v-model="formData.bookSpec" 
+          <el-input
+            v-model="formData.bookSpec"
             placeholder="请输入书籍规格">
           </el-input>
         </el-form-item>
-        
+
         <el-form-item label="数量" prop="quantity">
-          <el-input-number 
-            v-model="formData.quantity" 
-            :min="1" 
-            controls-position="right" 
+          <el-input-number
+            v-model="formData.quantity"
+            :min="1"
+            controls-position="right"
             style="width: 100%">
           </el-input-number>
         </el-form-item>
-        
-        <el-form-item label="单价" prop="price">
-          <el-input-number 
-            v-model="formData.price" 
-            :min="0" 
+
+        <el-form-item label="单价" prop="price" v-show="false">
+          <el-input-number
+            v-model="formData.price"
+            :min="0"
             :precision="2"
-            controls-position="right" 
+            controls-position="right"
             style="width: 100%">
           </el-input-number>
         </el-form-item>
-        
+
         <el-form-item label="是否选中" prop="selected">
           <el-switch
             v-model="formData.selected"
@@ -126,7 +126,7 @@
           </el-switch>
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
@@ -165,28 +165,14 @@ export default defineComponent({
 
     // 表单验证规则
     const cartItemRules = {
-      userId: [
-        { required: true, message: '请输入用户ID', trigger: 'blur' },
-        { type: 'number', message: '用户ID必须为数字', trigger: 'blur' }
-      ],
-      bookId: [
-        { required: true, message: '请输入书籍SKU ID', trigger: 'blur' }
-      ],
-      specId: [
-        { required: true, message: '请输入书籍规格ID', trigger: 'blur' }
-      ],
+
       bookName: [
         { required: true, message: '请输入书籍名称', trigger: 'blur' }
       ],
       bookSpec: [
         { required: true, message: '请输入书籍规格', trigger: 'blur' }
-      ],
-      quantity: [
-        { required: true, message: '请输入数量', trigger: 'blur' }
-      ],
-      price: [
-        { required: true, message: '请输入单价', trigger: 'blur' }
       ]
+
     };
 
     // 添加分页相关字段到selected_data
