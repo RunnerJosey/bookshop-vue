@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import axios from 'axios'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -54,7 +53,6 @@ const routes: Array<RouteRecordRaw> = [
         },
         component: () => import('../views/cartItem/CartItemView.vue')
       },
-
     ]
   },
   {
@@ -88,23 +86,5 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
-
-
-// 添加axios拦截器
-axios.interceptors.request.use(
-    config => {
-      const token = localStorage.getItem('token')
-      if (token) {
-        if (!config.headers) {
-          config.headers = {}
-        }
-        config.headers.Authorization = token
-      }
-      return config
-    },
-    error => {
-      return Promise.reject(error)
-    }
-)
 
 export default router

@@ -76,6 +76,20 @@ service.interceptors.response.use((response) => {
         });
     }
     
+    // 检查是否是登录过期的情况（针对无响应的情况）
+    if (err.response && err.response.status === 500) {
+        // 清除本地token
+        localStorage.removeItem('token');
+        // 显示提示信息
+        ElMessage({
+          message: '登录已过期，请重新登录',
+          type: 'warning'
+        });
+        // 跳转到登录页面
+        router.push('/login');
+        return Promise.reject(err);
+    }
+    
     return Promise.reject(err);
 });
 
