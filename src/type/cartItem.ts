@@ -5,7 +5,7 @@ export interface ICartItem {
     bookId: string,    // 书籍SKU ID
     specId: string,    // 书籍规格ID
     bookName: string,  // 书籍名称
-    bookSpec: string,  // 书籍规格名称
+    specName: string,  // 书籍规格名称
     quantity: number,  // 书籍数量
     price: number,     // 加购时单价
     selected: number,  // 是否选中（1=是，0=否）
@@ -23,17 +23,17 @@ export interface IPage {
 // 购物车查询接口
 export interface IQueryCartItem extends IPage {
     bookName: string,  // 书籍名称查询条件
-    bookSpec: string   // 书籍规格名称查询条件
+    specName: string   // 书籍规格名称查询条件
 }
 
 // 购物车编辑接口
 export interface ICartItemEdit {
-    id?: string,       // 主键ID (可选，编辑时使用)
+    id: string,        // 主键ID (必需，编辑时使用)
     userId: number,    // 用户ID
     bookId: string,    // 书籍SKU ID
     specId: string,    // 书籍规格ID
     bookName?: string, // 书籍名称
-    bookSpec?: string, // 书籍规格名称
+    specName?: string, // 书籍规格名称
     quantity: number,  // 书籍数量
     price: number,     // 加购时单价
     selected: number,  // 是否选中（1=是，0=否）
@@ -47,7 +47,7 @@ export interface IAddCartItem {
     bookId: string,    // 书籍SKU ID
     specId: string,    // 书籍规格ID
     bookName?: string, // 书籍名称
-    bookSpec?: string, // 书籍规格名称
+    specName?: string, // 书籍规格名称
     quantity: number,  // 书籍数量
     price: number,     // 加购时单价
     selected: number   // 是否选中（1=是，0=否）
@@ -57,7 +57,7 @@ export interface IAddCartItem {
 export class CartItemPages{
     selected_data: IQueryCartItem = {
         bookName: "",
-        bookSpec: "",
+        specName: "",
         current_page: 1,
         data_count: 0,
         single_page_size: 10
@@ -72,7 +72,7 @@ export class CartItemPages{
         bookId: "",
         specId: "",
         bookName: "",
-        bookSpec: "",
+        specName: "",
         quantity: 0,
         price: 0,
         selected: 0
@@ -84,7 +84,7 @@ export class CartItemPages{
         bookId: "",
         specId: "",
         bookName: "",
-        bookSpec: "",
+        specName: "",
         quantity: 0,
         price: 0,
         selected: 0

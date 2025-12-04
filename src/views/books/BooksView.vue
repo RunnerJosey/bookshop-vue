@@ -89,6 +89,10 @@
           </el-input>
         </el-form-item>
 
+        <el-form-item label="书籍规格">
+          <el-input v-model="cartFormData.specName" disabled></el-input>
+        </el-form-item>
+
         <el-form-item label="数量" prop="quantity">
           <el-input-number
               v-model="cartFormData.quantity"
@@ -154,7 +158,7 @@ export default defineComponent({
       specId: "",
       bookName: "",
       introduce: "",
-      bookSpec: "",
+      specName: "",
       quantity: 1,
       price: 0,
       selected: 0
@@ -172,7 +176,7 @@ export default defineComponent({
       specId: [
         { required: true, message: '请输入书籍规格ID', trigger: 'blur' }
       ],
-      bookSpec: [
+      specName: [
         { required: true, message: '请输入书籍规格', trigger: 'blur' }
       ],
       quantity: [
@@ -300,7 +304,7 @@ export default defineComponent({
       cartFormData.specId = "";
       cartFormData.bookName = row.bookName || "";
       cartFormData.introduce = row.introduce || "";
-      cartFormData.bookSpec = "";
+      cartFormData.specName = "";
       cartFormData.quantity = 1;
       cartFormData.price = 0;
       cartFormData.selected = 0;
@@ -310,28 +314,32 @@ export default defineComponent({
     
     // 提交购物车表单
     const submitCartItemForm = async () => {
-      if (!cartItemFormRef.value) return;
+      if (!cartItemFormRef.value) return
       await cartItemFormRef.value.validate(async (valid) => {
         if (valid) {
           try {
-            // 准备提交数据
+            // 准备购物车数据
             const cartData = {
               userId: cartFormData.userId,
               bookId: cartFormData.bookId,
               specId: cartFormData.specId,
               bookName: cartFormData.bookName,
-              bookSpec: cartFormData.bookSpec,
+              specName: cartFormData.specName,
               quantity: cartFormData.quantity,
-              price: cartFormData.price,
+              price: 0, // 默认价格为0，后端会处理
               selected: cartFormData.selected
             };
-            
+
             await addCartItem(cartData);
-            ElMessage.success('已加入购物车');
+            ElMessage.success('添加购物车成功');
             cartDialogVisible.value = false;
+            // 重置表单
+            if (cartItemFormRef.value) {
+              cartItemFormRef.value.resetFields();
+            }
           } catch (error: any) {
-            console.error('加入购物车失败:', error);
-            ElMessage.error('加入购物车失败: ' + (error.message || '未知错误'));
+            console.error('添加购物车失败:', error);
+            ElMessage.error('添加购物车失败: ' + (error.message || '未知错误'));
           }
         } else {
           ElMessage.warning('请填写必填项');

@@ -176,7 +176,7 @@ export function deleteRole(idList: (number | string)[]) {
 }
 
 // 购物车列表接口
-export function getCartItemList(params?: { current?: number; size?: number; bookName?: string; bookSpec?: string }) {
+export function getCartItemList(params?: { current?: number; size?: number; bookName?: string; specName?: string }) {
     return service({
         url: "/cartItem/selectPage",
         method: "GET",
@@ -233,6 +233,52 @@ export function deleteAllCartItem(idList: (number | string)[]) {
     }).then(res => res.data);
 }
 
+// 订单列表接口
+export function getOrderList(params?: { current?: number; size?: number; bookName?: string; specName?: string }) {
+    return service({
+        url: "/order/selectPage",
+        method: "GET",
+        params
+    })
+}
+
+// 根据id获取订单
+export function getOrderById(id: number | string){
+    return service({
+        url: "/order/getById",
+        method: "GET",
+        params: { id }
+    })
+}
+
+// 新增订单
+export function addOrder(data: any) {
+    return service({
+        url: "/order/add",
+        method: "POST",
+        data
+    }).then(res => res.data); // 返回后端完整对象
+}
+
+// 修改订单
+export function updateOrder(data: ICartItemEdit ){
+    return service({
+        url: "/order/update",
+        method: "PUT",
+        data
+    }).then(res => res.data);//只返回后端数据
+}
+
+// 删除订单
+export function deleteOrder(idList: (number | string)[]) {
+    return service({
+        url: "/order/delete",
+        method: "DELETE",
+        params: {
+            idList: idList.join(',')  // 将数组转换为逗号分隔的字符串
+        }
+    }).then(res => res.data);
+}
 
 // 权限列表接口
 export function getAuthorityList(){

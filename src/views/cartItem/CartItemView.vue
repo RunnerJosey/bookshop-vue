@@ -6,23 +6,24 @@
       </el-form-item>
       
       <el-form-item label="书籍规格">
-        <el-input v-model="selected_data.bookSpec" placeholder="请输入书籍规格" />
+        <el-input v-model="selected_data.specName" placeholder="请输入书籍规格" />
       </el-form-item>
 
       <el-form-item>
         <el-button type="primary" @click="onSearchCartItem">查询</el-button>
       </el-form-item>
-      
-      <el-form-item>
-        <el-button type="primary" @click="onAddCartItem">新增</el-button>
-      </el-form-item>
     </el-form>
+    
+    <div style="margin-bottom: 20px;">
+      <el-button color="#165DFF" @click="onAddCartItem">去结算</el-button>
+    </div>
 
     <el-table :data="showedDataList.compDataList" border style="width: 100%">
       <el-table-column prop="serialNumber" label="编号" width="60" />
+      <el-table-column prop="id" label="购物车id" width="100" v-if="false" />
       <el-table-column prop="userId" label="用户ID" width="100" v-if="false" />
       <el-table-column prop="bookName" label="书籍名称" width="150" />
-      <el-table-column prop="bookSpec" label="书籍规格" width="150" />
+      <el-table-column prop="specName" label="书籍规格" width="150" />
       <el-table-column prop="quantity" label="数量" width="80" />
       <el-table-column prop="price" label="单价" width="100" />
       <el-table-column prop="selected" label="选中状态" width="100">
@@ -62,6 +63,8 @@
         :rules="cartItemRules"
         ref="cartItemFormRef"
         label-width="100px">
+        <el-form-item label="购物车ID" prop="id" v-show="false">
+        </el-form-item>
         <el-form-item label="用户ID" prop="userId" v-show="false">
           <el-input
             v-model.number="formData.userId"
@@ -90,9 +93,9 @@
           </el-input>
         </el-form-item>
 
-        <el-form-item label="书籍规格" prop="bookSpec">
+        <el-form-item label="书籍规格" prop="specName">
           <el-input
-            v-model="formData.bookSpec"
+            v-model="formData.specName"
             placeholder="请输入书籍规格">
           </el-input>
         </el-form-item>
@@ -153,11 +156,12 @@ export default defineComponent({
     
     // 表单数据（解决v-model不能使用三元表达式的问题）
     const formData = reactive({
+      id: "",  // 添加id字段
       userId: 0,
       bookId: "",
       specId: "",
       bookName: "",
-      bookSpec: "",
+      specName: "",
       quantity: 1,
       price: 0,
       selected: 0
@@ -169,7 +173,7 @@ export default defineComponent({
       bookName: [
         { required: true, message: '请输入书籍名称', trigger: 'blur' }
       ],
-      bookSpec: [
+      specName: [
         { required: true, message: '请输入书籍规格', trigger: 'blur' }
       ]
 
@@ -190,7 +194,7 @@ export default defineComponent({
         current: cartItem_data.selected_data.current_page,
         size: cartItem_data.selected_data.single_page_size,
         bookName: cartItem_data.selected_data.bookName,
-        bookSpec: cartItem_data.selected_data.bookSpec
+        specName: cartItem_data.selected_data.specName
       }).then((res: any) => {
         // 适配新的数据结构 {code: 200, data: {records: [...], ...}, message: "success"}
         if (res && res.code === 200 && res.data && Array.isArray(res.data.records)) {
@@ -251,11 +255,12 @@ export default defineComponent({
       editMode.value = false;
       // 重置表单数据
       Object.assign(formData, {
+        id: "",  // 重置id字段
         userId: 0,
         bookId: "",
         specId: "",
         bookName: "",
-        bookSpec: "",
+        specName: "",
         quantity: 1,
         price: 0,
         selected: 0
@@ -268,11 +273,12 @@ export default defineComponent({
       editMode.value = true;
       // 填充表单数据
       Object.assign(formData, {
+        id: row.id,  // 添加id字段
         userId: row.userId,
         bookId: row.bookId,
         specId: row.specId,
         bookName: row.bookName,
-        bookSpec: row.bookSpec,
+        specName: row.specName,
         quantity: row.quantity,
         price: row.price,
         selected: row.selected
@@ -313,14 +319,30 @@ export default defineComponent({
             if (editMode.value) {
               // 编辑模式
               const editData: ICartItemEdit = {
-                id: cartItem_data.editCartItem.id,
-                ...formData
+                id: formData.id,  // 确保传递id字段
+                userId: formData.userId,
+                bookId: formData.bookId,
+                specId: formData.specId,
+                bookName: formData.bookName,
+                specName: formData.specName,
+                quantity: formData.quantity,
+                price: formData.price,
+                selected: formData.selected
               };
               await updateCartItem(editData);
               ElMessage.success('购物车更新成功');
             } else {
               // 新增模式
-              const addData: IAddCartItem = { ...formData };
+              const addData: IAddCartItem = { 
+                userId: formData.userId,
+                bookId: formData.bookId,
+                specId: formData.specId,
+                bookName: formData.bookName,
+                specName: formData.specName,
+                quantity: formData.quantity,
+                price: formData.price,
+                selected: formData.selected
+              };
               await addCartItem(addData);
               ElMessage.success('购物车添加成功');
             }
@@ -345,9 +367,9 @@ export default defineComponent({
 
     // 监听查询条件变化
     watch(
-      [() => cartItem_data.selected_data.bookName, () => cartItem_data.selected_data.bookSpec],
-      ([newBookName, newBookSpec]) => {
-        if (!newBookName && !newBookSpec) {
+      [() => cartItem_data.selected_data.bookName, () => cartItem_data.selected_data.specName],
+      ([newBookName, newSpecName]) => {
+        if (!newBookName && !newSpecName) {
           p_getCartItemList();
         }
       }

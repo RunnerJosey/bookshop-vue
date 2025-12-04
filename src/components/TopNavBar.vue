@@ -8,7 +8,7 @@
       active-text-color="#ffd04b"
       style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000;"
   >
-    <el-menu-item index="0"><h2>Josey小书店-后台管理系统</h2></el-menu-item>
+    <el-menu-item index="0"><h2>JOJO小书店</h2></el-menu-item>
     <div class="flex-grow" />
     <span style="line-height: 58px;margin-right: 10px;">
       <el-popconfirm title="确定要退出?"

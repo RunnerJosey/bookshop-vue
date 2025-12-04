@@ -9,15 +9,6 @@ const routes: Array<RouteRecordRaw> = [
     redirect: 'books',
     children: [
       {
-        path: 'books',
-        name: 'GoodsView',
-        meta: {
-          isShow: true,  // 是否需要被展示出来
-          title: "书籍列表"
-        },
-        component: () => import('../views/books/BooksView.vue')
-      },
-      {
         path: 'user',
         name: 'UserView',
         meta: {
@@ -45,6 +36,15 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../views/authority/AuthorityView.vue')
       },
       {
+        path: 'books',
+        name: 'GoodsView',
+        meta: {
+          isShow: true,  // 是否需要被展示出来
+          title: "书籍列表"
+        },
+        component: () => import('../views/books/BooksView.vue')
+      },
+      {
         path: 'cartItem',
         name: 'cartItemView',
         meta: {
@@ -52,6 +52,15 @@ const routes: Array<RouteRecordRaw> = [
           title: "我的购物车"
         },
         component: () => import('../views/cartItem/CartItemView.vue')
+      },
+      {
+        path: 'order',
+        name: 'OrderView',
+        meta: {
+          isShow: true,  // 是否需要被展示出来
+          title: "订单管理"
+        },
+        component: () => import('../views/order/OrderView.vue')
       },
     ]
   },
