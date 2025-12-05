@@ -12,13 +12,14 @@
       <el-form-item>
         <el-button type="primary" @click="onSearchCartItem">查询</el-button>
       </el-form-item>
+      
+      <el-form-item>
+        <el-button color="#165DFF" @click="onCheckout">去结算</el-button>
+      </el-form-item>
     </el-form>
-    
-    <div style="margin-bottom: 20px;">
-      <el-button color="#165DFF" @click="onAddCartItem">去结算</el-button>
-    </div>
 
-    <el-table :data="showedDataList.compDataList" border style="width: 100%">
+    <el-table :data="showedDataList.compDataList" border style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55" />
       <el-table-column prop="serialNumber" label="编号" width="60" />
       <el-table-column prop="id" label="购物车id" width="100" v-if="false" />
       <el-table-column prop="userId" label="用户ID" width="100" v-if="false" />
@@ -26,13 +27,6 @@
       <el-table-column prop="specName" label="书籍规格" width="150" />
       <el-table-column prop="quantity" label="数量" width="80" />
       <el-table-column prop="price" label="单价" width="100" />
-      <el-table-column prop="selected" label="选中状态" width="100">
-        <template #default="scope">
-          <el-tag :type="scope.row.selected === 1 ? 'success' : 'info'">
-            {{ scope.row.selected === 1 ? '是' : '否' }}
-          </el-tag>
-        </template>
-      </el-table-column>
       <el-table-column prop="addTime" label="加购时间" width="180" />
       <el-table-column prop="updateTime" label="更新时间" width="180" />
       <el-table-column label="操作" width="140">
@@ -118,16 +112,6 @@
             style="width: 100%">
           </el-input-number>
         </el-form-item>
-
-        <el-form-item label="是否选中" prop="selected">
-          <el-switch
-            v-model="formData.selected"
-            :active-value="1"
-            :inactive-value="0"
-            active-text="是"
-            inactive-text="否">
-          </el-switch>
-        </el-form-item>
       </el-form>
 
       <template #footer>
@@ -153,6 +137,7 @@ export default defineComponent({
     const dialogVisible = ref(false);
     const editMode = ref(false); // false为新增，true为编辑
     const dialogTitle = computed(() => editMode.value ? '编辑购物车' : '新增购物车');
+    const multipleSelection = ref<ICartItem[]>([]);
     
     // 表单数据（解决v-model不能使用三元表达式的问题）
     const formData = reactive({
@@ -163,8 +148,7 @@ export default defineComponent({
       bookName: "",
       specName: "",
       quantity: 1,
-      price: 0,
-      selected: 0
+      price: 0
     });
 
     // 表单验证规则
@@ -262,8 +246,7 @@ export default defineComponent({
         bookName: "",
         specName: "",
         quantity: 1,
-        price: 0,
-        selected: 0
+        price: 0
       });
       dialogVisible.value = true;
     };
@@ -280,8 +263,7 @@ export default defineComponent({
         bookName: row.bookName,
         specName: row.specName,
         quantity: row.quantity,
-        price: row.price,
-        selected: row.selected
+        price: row.price
       });
       dialogVisible.value = true;
     };
@@ -327,7 +309,7 @@ export default defineComponent({
                 specName: formData.specName,
                 quantity: formData.quantity,
                 price: formData.price,
-                selected: formData.selected
+                selected: 1 // 默认选中
               };
               await updateCartItem(editData);
               ElMessage.success('购物车更新成功');
@@ -341,7 +323,7 @@ export default defineComponent({
                 specName: formData.specName,
                 quantity: formData.quantity,
                 price: formData.price,
-                selected: formData.selected
+                selected: 1 // 默认选中
               };
               await addCartItem(addData);
               ElMessage.success('购物车添加成功');
@@ -374,6 +356,23 @@ export default defineComponent({
         }
       }
     );
+    
+    // 处理多选变化
+    const handleSelectionChange = (val: ICartItem[]) => {
+      multipleSelection.value = val;
+    };
+    
+    // 去结算
+    const onCheckout = () => {
+      if (multipleSelection.value.length === 0) {
+        ElMessage.warning('请至少选择一个商品');
+        return;
+      }
+      
+      // 这里可以调用结算接口
+      ElMessage.success(`已选择${multipleSelection.value.length}件商品结算中，请在订单管理页面查看`);
+      console.log('选中的商品:', multipleSelection.value);
+    };
 
     return {
       cartItem_data,
@@ -385,10 +384,13 @@ export default defineComponent({
       editMode,
       dialogTitle,
       showedDataList,
+      multipleSelection,
       onSearchCartItem,
       onAddCartItem,
       onEditCartItem,
       onDeleteCartItem,
+      handleSelectionChange,
+      onCheckout,
       submitCartItemForm,
       handleDialogClose,
       currentChange,

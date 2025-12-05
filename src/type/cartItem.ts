@@ -75,7 +75,7 @@ export class CartItemPages{
         specName: "",
         quantity: 0,
         price: 0,
-        selected: 0
+        selected: 1
     }
     
     // 新增购物车时用到的对象
@@ -87,6 +87,6 @@ export class CartItemPages{
         specName: "",
         quantity: 0,
         price: 0,
-        selected: 0
+        selected: 1
     }
 }

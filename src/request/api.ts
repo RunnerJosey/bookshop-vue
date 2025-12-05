@@ -234,9 +234,9 @@ export function deleteAllCartItem(idList: (number | string)[]) {
 }
 
 // 订单列表接口
-export function getOrderList(params?: { current?: number; size?: number; bookName?: string; specName?: string }) {
+export function getOrderList(params?: { current?: number; size?: number; bookName?: string; orderStatus?: number }) {
     return service({
-        url: "/order/selectPage",
+        url: "/bookOrder/selectPage",
         method: "GET",
         params
     })
@@ -245,7 +245,7 @@ export function getOrderList(params?: { current?: number; size?: number; bookNam
 // 根据id获取订单
 export function getOrderById(id: number | string){
     return service({
-        url: "/order/getById",
+        url: "/bookOrder/getById",
         method: "GET",
         params: { id }
     })
@@ -254,7 +254,7 @@ export function getOrderById(id: number | string){
 // 新增订单
 export function addOrder(data: any) {
     return service({
-        url: "/order/add",
+        url: "/bookOrder/add",
         method: "POST",
         data
     }).then(res => res.data); // 返回后端完整对象
@@ -263,7 +263,7 @@ export function addOrder(data: any) {
 // 修改订单
 export function updateOrder(data: ICartItemEdit ){
     return service({
-        url: "/order/update",
+        url: "/bookOrder/update",
         method: "PUT",
         data
     }).then(res => res.data);//只返回后端数据
@@ -272,7 +272,7 @@ export function updateOrder(data: ICartItemEdit ){
 // 删除订单
 export function deleteOrder(idList: (number | string)[]) {
     return service({
-        url: "/order/delete",
+        url: "/bookOrder/delete",
         method: "DELETE",
         params: {
             idList: idList.join(',')  // 将数组转换为逗号分隔的字符串

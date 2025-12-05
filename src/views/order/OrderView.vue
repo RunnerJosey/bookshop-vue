@@ -198,6 +198,7 @@
 import {defineComponent, onMounted, reactive, toRefs, computed, ref} from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { OrderPages, IOrder } from "@/type/order";
+import {getOrderList, deleteOrder} from "@/request/api";
 
 export default defineComponent({
   name: 'OrderView',
@@ -231,48 +232,34 @@ export default defineComponent({
 
     // 获取全部订单数据
     const p_getOrderList = () => {
-      // 模拟API调用
-      setTimeout(() => {
-        // 模拟数据
-        const mockData = [
-          {
-            id: "10001",
-            orderStatus: 0,
-            totalAmount: 99.90,
-            payAmount: 89.90,
-            discountAmount: 10.00,
-            freight: 0,
-            payType: 1,
-            bookName: "Vue.js设计与实现",
-            bookPrice: 99.90,
-            quantity: 1,
-            subtotal: 99.90,
-            createTime: "2023-01-01 12:00:00",
-            updateTime: "2023-01-01 12:00:00"
-          },
-          {
-            id: "10002",
-            orderStatus: 1,
-            totalAmount: 59.80,
-            payAmount: 59.80,
-            discountAmount: 0,
-            freight: 0,
-            payType: 2,
-            bookName: "TypeScript实战",
-            bookPrice: 29.90,
-            quantity: 2,
-            subtotal: 59.80,
-            createTime: "2023-01-02 14:30:00",
-            updateTime: "2023-01-03 09:15:00"
-          }
-        ];
-        
-        order_data.order_list = mockData.map(item => ({
-          ...item,
-          id: item.id.toString()
-        }));
-        order_data.selected_data.data_count = mockData.length;
-      }, 300);
+      getOrderList({
+        current: order_data.selected_data.current_page,
+        size: order_data.selected_data.single_page_size,
+        bookName: order_data.selected_data.bookName,
+        orderStatus: order_data.selected_data.orderStatus
+      }).then((res: any) => {
+        // 适配新的数据结构 {code: 200, data: {records: [...], ...}, message: "success"}
+        if (res && res.code === 200 && res.data && Array.isArray(res.data.records)) {
+          // 将ID转换为字符串以避免精度问题
+          const processedRecords = res.data.records.map((record: any) => ({
+            ...record,
+            id: record.id.toString() // 转换为字符串
+          }));
+          
+          order_data.order_list = processedRecords;
+          order_data.selected_data.data_count = res.data.total;
+        } else {
+          console.error("API 数据格式不正确:", res);
+          order_data.order_list = [];
+          order_data.selected_data.data_count = 0;
+          ElMessage.error('获取订单数据失败');
+        }
+      }).catch(error => {
+        console.error('获取订单列表失败:', error);
+        order_data.order_list = [];
+        order_data.selected_data.data_count = 0;
+        ElMessage.error('获取订单数据失败');
+      });
     }
 
     // 计算属性, 切割出实际上需要展示的数据，并添加序号
@@ -323,10 +310,15 @@ export default defineComponent({
           cancelButtonText: '取消',
           type: 'warning',
         }
-      ).then(() => {
-        // 模拟删除操作
-        ElMessage.success('删除成功');
-        p_getOrderList(); // 重新加载订单列表
+      ).then(async () => {
+        try {
+          await deleteOrder([id]);
+          ElMessage.success('删除成功');
+          p_getOrderList(); // 重新加载订单列表
+        } catch (error: any) {
+          console.error('删除订单失败:', error);
+          ElMessage.error('删除失败: ' + (error.message || '未知错误'));
+        }
       }).catch(() => {
         // 用户取消删除
       });
