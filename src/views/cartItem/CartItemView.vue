@@ -126,7 +126,7 @@
 
 <script lang="ts">
 import {defineComponent, onMounted, reactive, toRefs, ref, computed, watch} from 'vue';
-import {addCartItem, deleteCartItem, getCartItemList, updateCartItem} from "@/request/api";
+import {addCartItem, deleteCartItem, getCartItemList, updateCartItem, addOrder} from "@/request/api";
 import {ICartItem, CartItemPages, IAddCartItem, ICartItemEdit} from "@/type/cartItem";
 import { ElMessageBox, ElMessage, FormInstance } from 'element-plus';
 
@@ -363,15 +363,59 @@ export default defineComponent({
     };
     
     // 去结算
-    const onCheckout = () => {
+    const onCheckout = async () => {
       if (multipleSelection.value.length === 0) {
         ElMessage.warning('请至少选择一个商品');
         return;
       }
       
-      // 这里可以调用结算接口
-      ElMessage.success(`已选择${multipleSelection.value.length}件商品结算中，请在订单管理页面查看`);
-      console.log('选中的商品:', multipleSelection.value);
+      try {
+        // 准备订单数据 - 计算总金额
+        let totalAmount = 0;
+        let payAmount = 0;
+        
+        // 创建订单项目列表
+        const orderItems = multipleSelection.value.map(item => {
+          const subtotal = item.price * item.quantity;
+          totalAmount += subtotal;
+          payAmount += subtotal;
+          return {
+            bookName: item.bookName,
+            bookPrice: item.price,
+            quantity: item.quantity,
+            subtotal: subtotal,
+            orderStatus: 0,  // 待付款状态
+            payType: 1       // 默认微信支付
+          };
+        });
+        
+        // 为每个选中的商品创建单独的订单
+        for (const item of orderItems) {
+          const orderData = {
+            bookName: item.bookName,
+            bookPrice: item.bookPrice,
+            quantity: item.quantity,
+            subtotal: item.subtotal,
+            totalAmount: item.subtotal, // 单个商品订单总额就是小计
+            payAmount: item.subtotal,   // 实付金额
+            discountAmount: 0,          // 无折扣
+            freight: 0,                 // 无运费
+            payType: item.payType,
+            orderStatus: item.orderStatus
+          };
+          
+          await addOrder(orderData);
+        }
+        
+        ElMessage.success(`成功创建${orderItems.length}个订单，总金额: ¥${payAmount.toFixed(2)}`);
+        console.log('选中的商品:', multipleSelection.value);
+        
+        // 结算完成后，可以考虑清除选中项或刷新列表
+        // 这里可以根据实际需求进行调整
+      } catch (error: any) {
+        console.error('结算失败:', error);
+        ElMessage.error('结算失败: ' + (error.message || '未知错误'));
+      }
     };
 
     return {
