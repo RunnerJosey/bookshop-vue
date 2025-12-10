@@ -29,45 +29,45 @@
       <el-table-column prop="bookName" label="图书名称" width="150" />
       <el-table-column prop="bookPrice" label="图书单价" width="100">
         <template #default="scope">
-          ¥{{ scope.row.bookPrice.toFixed(2) }}
+          ¥{{ (scope.row.bookPrice || 0).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column prop="quantity" label="购买数量" width="100" />
       <el-table-column prop="subtotal" label="小计金额" width="100">
         <template #default="scope">
-          ¥{{ scope.row.subtotal.toFixed(2) }}
+          ¥{{ (scope.row.subtotal || 0).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column prop="totalAmount" label="订单总金额" width="120">
         <template #default="scope">
-          ¥{{ scope.row.totalAmount.toFixed(2) }}
+          ¥{{ (scope.row.totalAmount || 0).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column prop="discountAmount" label="优惠金额" width="100">
         <template #default="scope">
-          ¥{{ scope.row.discountAmount.toFixed(2) }}
+          ¥{{ (scope.row.discountAmount || 0).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column prop="freight" label="运费" width="80">
         <template #default="scope">
-          ¥{{ scope.row.freight.toFixed(2) }}
+          ¥{{ (scope.row.freight || 0).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column prop="payAmount" label="实付金额" width="120">
         <template #default="scope">
-          ¥{{ scope.row.payAmount.toFixed(2) }}
+          ¥{{ (scope.row.payAmount || 0).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column prop="orderStatusText" label="订单状态" width="100">
         <template #default="scope">
-          <el-tag :type="getOrderStatusTagType(scope.row.orderStatus)">
-            {{ getOrderStatusText(scope.row.orderStatus) }}
+          <el-tag :type="getOrderStatusTagType(scope.row.orderStatus || 0)">
+            {{ getOrderStatusText(scope.row.orderStatus || 0) }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="payTypeText" label="支付方式" width="100">
         <template #default="scope">
-          {{ getPayTypeText(scope.row.payType) }}
+          {{ getPayTypeText(scope.row.payType || 1) }}
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="180" />
@@ -104,8 +104,8 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="订单状态：">
-              <el-tag :type="getOrderStatusTagType(currentOrder.orderStatus)">
-                {{ getOrderStatusText(currentOrder.orderStatus) }}
+              <el-tag :type="getOrderStatusTagType(currentOrder.orderStatus || 0)">
+                {{ getOrderStatusText(currentOrder.orderStatus || 0) }}
               </el-tag>
             </el-form-item>
           </el-col>
@@ -127,12 +127,12 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="图书单价：">
-              ¥{{ currentOrder.bookPrice.toFixed(2) }}
+              ¥{{ (currentOrder.bookPrice || 0).toFixed(2) }}
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="小计金额：">
-              ¥{{ currentOrder.subtotal.toFixed(2) }}
+              ¥{{ (currentOrder.subtotal || 0).toFixed(2) }}
             </el-form-item>
           </el-col>
         </el-row>
@@ -140,12 +140,12 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="订单总金额：">
-              ¥{{ currentOrder.totalAmount.toFixed(2) }}
+              ¥{{ (currentOrder.totalAmount || 0).toFixed(2) }}
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="优惠金额：">
-              ¥{{ currentOrder.discountAmount.toFixed(2) }}
+              ¥{{ (currentOrder.discountAmount || 0).toFixed(2) }}
             </el-form-item>
           </el-col>
         </el-row>
@@ -153,12 +153,12 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="运费：">
-              ¥{{ currentOrder.freight.toFixed(2) }}
+              ¥{{ (currentOrder.freight || 0).toFixed(2) }}
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="实付金额：">
-              ¥{{ currentOrder.payAmount.toFixed(2) }}
+              ¥{{ (currentOrder.payAmount || 0).toFixed(2) }}
             </el-form-item>
           </el-col>
         </el-row>
@@ -166,7 +166,7 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="支付方式：">
-              {{ getPayTypeText(currentOrder.payType) }}
+              {{ getPayTypeText(currentOrder.payType || 1) }}
             </el-form-item>
           </el-col>
         </el-row>
@@ -235,15 +235,28 @@ export default defineComponent({
       getOrderList({
         current: order_data.selected_data.current_page,
         size: order_data.selected_data.single_page_size,
-        bookName: order_data.selected_data.bookName,
-        orderStatus: order_data.selected_data.orderStatus
+        bookName: order_data.selected_data.bookName || undefined,
+        orderStatus: order_data.selected_data.orderStatus >= 0 ? order_data.selected_data.orderStatus : undefined
       }).then((res: any) => {
         // 适配新的数据结构 {code: 200, data: {records: [...], ...}, message: "success"}
         if (res && res.code === 200 && res.data && Array.isArray(res.data.records)) {
           // 将ID转换为字符串以避免精度问题
           const processedRecords = res.data.records.map((record: any) => ({
             ...record,
-            id: record.id.toString() // 转换为字符串
+            id: record.id.toString(), // 转换为字符串
+            // 确保所有必需字段都有默认值
+            orderStatus: record.orderStatus !== undefined ? record.orderStatus : 0,
+            totalAmount: record.totalAmount !== undefined ? record.totalAmount : 0,
+            payAmount: record.payAmount !== undefined ? record.payAmount : 0,
+            discountAmount: record.discountAmount !== undefined ? record.discountAmount : 0,
+            freight: record.freight !== undefined ? record.freight : 0,
+            payType: record.payType !== undefined ? record.payType : 1,
+            bookName: record.bookName !== undefined ? record.bookName : "",
+            bookPrice: record.bookPrice !== undefined ? record.bookPrice : 0,
+            quantity: record.quantity !== undefined ? record.quantity : 0,
+            subtotal: record.subtotal !== undefined ? record.subtotal : 0,
+            createTime: record.createTime !== undefined ? record.createTime : "",
+            updateTime: record.updateTime !== undefined ? record.updateTime : ""
           }));
           
           order_data.order_list = processedRecords;
@@ -269,8 +282,8 @@ export default defineComponent({
           return {
             ...item,
             serialNumber: (order_data.selected_data.current_page - 1) * order_data.selected_data.single_page_size + index + 1,
-            orderStatusText: getOrderStatusText(item.orderStatus),
-            payTypeText: getPayTypeText(item.payType)
+            orderStatusText: getOrderStatusText(item.orderStatus || 0),
+            payTypeText: getPayTypeText(item.payType || 1)
           };
         });
       })

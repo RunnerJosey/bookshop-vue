@@ -251,8 +251,9 @@ export function getOrderById(id: number | string){
     })
 }
 
-// 新增订单
-export function addOrder(data: any) {
+
+// 批量新增订单
+export function addOrders(data: any[]) {
     return service({
         url: "/bookOrder/add",
         method: "POST",
@@ -286,4 +287,39 @@ export function getAuthorityList(){
         url: "/getAuthorityList",
         method: "GET"
     })
+}
+
+// 地址列表接口
+export function getAddressList() {
+    return service({
+        url: "/address/list",
+        method: "GET"
+    })
+}
+
+// 新增收货地址
+export function addAddress(data: any) {
+    return service({
+        url: "/address/add",
+        method: "POST",
+        data
+    }).then(res => res.data);
+}
+
+// 修改收货地址
+export function updateAddress(data: any) {
+    return service({
+        url: "/address/update",
+        method: "PUT",
+        data
+    }).then(res => res.data);
+}
+
+// 删除收货地址
+export function deleteAddress(id: string) {
+    return service({
+        url: "/address/delete",
+        method: "DELETE",
+        params: { id }
+    }).then(res => res.data);
 }

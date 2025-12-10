@@ -1,132 +1,6 @@
-<template>
-  <div>
-    <el-form :inline="true" :model="selected_data" class="search-form">
-      <el-form-item label="书籍名称">
-        <el-input v-model="selected_data.bookName" placeholder="请输入书籍名称" />
-      </el-form-item>
-      
-      <el-form-item label="书籍规格">
-        <el-input v-model="selected_data.specName" placeholder="请输入书籍规格" />
-      </el-form-item>
-
-      <el-form-item>
-        <el-button type="primary" @click="onSearchCartItem">查询</el-button>
-      </el-form-item>
-      
-      <el-form-item>
-        <el-button color="#165DFF" @click="onCheckout">去结算</el-button>
-      </el-form-item>
-    </el-form>
-
-    <el-table :data="showedDataList.compDataList" border style="width: 100%" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" />
-      <el-table-column prop="serialNumber" label="编号" width="60" />
-      <el-table-column prop="id" label="购物车id" width="100" v-if="false" />
-      <el-table-column prop="userId" label="用户ID" width="100" v-if="false" />
-      <el-table-column prop="bookName" label="书籍名称" width="150" />
-      <el-table-column prop="specName" label="书籍规格" width="150" />
-      <el-table-column prop="quantity" label="数量" width="80" />
-      <el-table-column prop="price" label="单价" width="100" />
-      <el-table-column prop="addTime" label="加购时间" width="180" />
-      <el-table-column prop="updateTime" label="更新时间" width="180" />
-      <el-table-column label="操作" width="140">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="onEditCartItem(scope.row)" style="margin-right: 5px;">修改</el-button>
-          <el-button type="danger" size="small" @click="onDeleteCartItem(scope.row.id)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <!-- 分页组件 -->
-    <div class="pagination-container">
-      <el-pagination
-          v-model:current-page="selected_data.current_page"
-          v-model:page-size="selected_data.single_page_size"
-          :page-sizes="[10, 20, 30, 50]"
-          :total="selected_data.data_count"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="sizeChange"
-          @current-change="currentChange"
-      />
-    </div>
-
-    <!-- 新增/编辑购物车弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="handleDialogClose">
-      <el-form
-        :model="formData"
-        :rules="cartItemRules"
-        ref="cartItemFormRef"
-        label-width="100px">
-        <el-form-item label="购物车ID" prop="id" v-show="false">
-        </el-form-item>
-        <el-form-item label="用户ID" prop="userId" v-show="false">
-          <el-input
-            v-model.number="formData.userId"
-            placeholder="请输入用户ID" >
-          </el-input>
-        </el-form-item>
-
-        <el-form-item label="书籍SKU ID" prop="bookId" v-show="false">
-          <el-input
-            v-model="formData.bookId"
-            placeholder="请输入书籍SKU ID">
-          </el-input>
-        </el-form-item>
-
-        <el-form-item label="书籍规格ID" prop="specId" v-show="false">
-          <el-input
-            v-model="formData.specId"
-            placeholder="请输入书籍规格ID">
-          </el-input>
-        </el-form-item>
-
-        <el-form-item label="书籍名称" prop="bookName">
-          <el-input
-            v-model="formData.bookName"
-            placeholder="请输入书籍名称">
-          </el-input>
-        </el-form-item>
-
-        <el-form-item label="书籍规格" prop="specName">
-          <el-input
-            v-model="formData.specName"
-            placeholder="请输入书籍规格">
-          </el-input>
-        </el-form-item>
-
-        <el-form-item label="数量" prop="quantity">
-          <el-input-number
-            v-model="formData.quantity"
-            :min="1"
-            controls-position="right"
-            style="width: 100%">
-          </el-input-number>
-        </el-form-item>
-
-        <el-form-item label="单价" prop="price" v-show="false">
-          <el-input-number
-            v-model="formData.price"
-            :min="0"
-            :precision="2"
-            controls-position="right"
-            style="width: 100%">
-          </el-input-number>
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitCartItemForm">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-
 <script lang="ts">
 import {defineComponent, onMounted, reactive, toRefs, ref, computed, watch} from 'vue';
-import {addCartItem, deleteCartItem, getCartItemList, updateCartItem, addOrder} from "@/request/api";
+import {addCartItem, deleteCartItem, getCartItemList, updateCartItem, addOrders} from "@/request/api";
 import {ICartItem, CartItemPages, IAddCartItem, ICartItemEdit} from "@/type/cartItem";
 import { ElMessageBox, ElMessage, FormInstance } from 'element-plus';
 
@@ -134,10 +8,16 @@ export default defineComponent({
   setup () {
     const cartItem_data = reactive(new CartItemPages())
     const cartItemFormRef = ref<FormInstance>();
+    const addressFormRef = ref<FormInstance>();
     const dialogVisible = ref(false);
+    const addressDialogVisible = ref(false);
+    const addressFormDialogVisible = ref(false);
     const editMode = ref(false); // false为新增，true为编辑
+    const addressEditMode = ref(false); // false为新增，true为编辑
     const dialogTitle = computed(() => editMode.value ? '编辑购物车' : '新增购物车');
+    const addressFormTitle = computed(() => addressEditMode.value ? '编辑收货地址' : '新增收货地址');
     const multipleSelection = ref<ICartItem[]>([]);
+    const addressList = ref<any[]>([]); // 实际项目中应该使用具体类型
     
     // 表单数据（解决v-model不能使用三元表达式的问题）
     const formData = reactive({
@@ -151,16 +31,40 @@ export default defineComponent({
       price: 0
     });
 
+    // 地址表单数据
+    const addressFormData = reactive({
+      id: "",
+      receiver: "",
+      phone: "",
+      address: "",
+      isDefault: 0,
+      tag: ""
+    });
+
     // 表单验证规则
     const cartItemRules = {
-
       bookName: [
         { required: true, message: '请输入书籍名称', trigger: 'blur' }
       ],
       specName: [
         { required: true, message: '请输入书籍规格', trigger: 'blur' }
       ]
+    };
 
+    // 地址表单验证规则
+    const addressFormRules = {
+      receiver: [
+        { required: true, message: '请输入收件人', trigger: 'blur' }
+      ],
+      phone: [
+        { required: true, message: '请输入手机号', trigger: 'blur' }
+      ],
+      address: [
+        { required: true, message: '请输入收货地址', trigger: 'blur' }
+      ],
+      tag: [
+        { required: true, message: '请输入地址标签', trigger: 'blur' }
+      ]
     };
 
     // 添加分页相关字段到selected_data
@@ -370,44 +274,27 @@ export default defineComponent({
       }
       
       try {
-        // 准备订单数据 - 计算总金额
-        let totalAmount = 0;
-        let payAmount = 0;
-        
-        // 创建订单项目列表
-        const orderItems = multipleSelection.value.map(item => {
+        // 准备订单数据数组
+        const orderDataArray = multipleSelection.value.map(item => {
           const subtotal = item.price * item.quantity;
-          totalAmount += subtotal;
-          payAmount += subtotal;
           return {
             bookName: item.bookName,
             bookPrice: item.price,
             quantity: item.quantity,
             subtotal: subtotal,
-            orderStatus: 0,  // 待付款状态
-            payType: 1       // 默认微信支付
+            totalAmount: subtotal,    // 单个商品订单总额就是小计
+            payAmount: subtotal,      // 实付金额
+            discountAmount: 0,       // 无折扣
+            freight: 0,              // 无运费
+            payType: 1,              // 默认微信支付
+            orderStatus: 0           // 待付款状态
           };
         });
         
-        // 为每个选中的商品创建单独的订单
-        for (const item of orderItems) {
-          const orderData = {
-            bookName: item.bookName,
-            bookPrice: item.bookPrice,
-            quantity: item.quantity,
-            subtotal: item.subtotal,
-            totalAmount: item.subtotal, // 单个商品订单总额就是小计
-            payAmount: item.subtotal,   // 实付金额
-            discountAmount: 0,          // 无折扣
-            freight: 0,                 // 无运费
-            payType: item.payType,
-            orderStatus: item.orderStatus
-          };
-          
-          await addOrder(orderData);
-        }
+        // 调用批量新增订单接口
+        await addOrders(orderDataArray);
         
-        ElMessage.success(`成功创建${orderItems.length}个订单，总金额: ¥${payAmount.toFixed(2)}`);
+        ElMessage.success(`成功创建${orderDataArray.length}个订单`);
         console.log('选中的商品:', multipleSelection.value);
         
         // 结算完成后，可以考虑清除选中项或刷新列表
@@ -417,73 +304,162 @@ export default defineComponent({
         ElMessage.error('结算失败: ' + (error.message || '未知错误'));
       }
     };
+    
+    // 管理收货地址
+    const onManageAddress = () => {
+      // 模拟获取地址列表
+      addressList.value = [
+        {
+          id: "1",
+          receiver: "张三",
+          phone: "13800138000",
+          address: "北京市朝阳区某某街道某某小区1号楼101室",
+          isDefault: 1,
+          tag: "家"
+        },
+        {
+          id: "2",
+          receiver: "李四",
+          phone: "13900139000",
+          address: "上海市浦东新区某某路123号某某大厦",
+          isDefault: 0,
+          tag: "公司"
+        }
+      ];
+      addressDialogVisible.value = true;
+    };
+    
+    // 新增地址
+    const onAddAddress = () => {
+      addressEditMode.value = false;
+      // 重置表单数据
+      Object.assign(addressFormData, {
+        id: "",
+        receiver: "",
+        phone: "",
+        address: "",
+        isDefault: 0,
+        tag: ""
+      });
+      addressFormDialogVisible.value = true;
+    };
+    
+    // 编辑地址
+    const onEditAddress = (row: any) => {
+      addressEditMode.value = true;
+      // 填充表单数据
+      Object.assign(addressFormData, {
+        id: row.id,
+        receiver: row.receiver,
+        phone: row.phone,
+        address: row.address,
+        isDefault: row.isDefault,
+        tag: row.tag
+      });
+      addressFormDialogVisible.value = true;
+    };
+    
+    // 删除地址
+    const onDeleteAddress = (id: string) => {
+      ElMessageBox.confirm(
+        '确定要删除这个收货地址吗？',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      ).then(() => {
+        // 模拟删除操作
+        addressList.value = addressList.value.filter(item => item.id !== id);
+        ElMessage.success('删除成功');
+      }).catch(() => {
+        // 用户取消删除
+      });
+    };
+    
+    // 提交地址表单
+    const submitAddressForm = async () => {
+      if (!addressFormRef.value) return;
+      await addressFormRef.value.validate(async (valid) => {
+        if (valid) {
+          try {
+            if (addressEditMode.value) {
+              // 编辑模式
+              const index = addressList.value.findIndex(item => item.id === addressFormData.id);
+              if (index !== -1) {
+                addressList.value[index] = { ...addressFormData };
+                ElMessage.success('地址更新成功');
+              }
+            } else {
+              // 新增模式
+              const newAddress = {
+                ...addressFormData,
+                id: Date.now().toString() // 简单生成ID
+              };
+              addressList.value.push(newAddress);
+              ElMessage.success('地址添加成功');
+            }
+            addressFormDialogVisible.value = false;
+          } catch (error: any) {
+            console.error('操作地址失败:', error);
+            ElMessage.error('操作失败: ' + (error.message || '未知错误'));
+          }
+        } else {
+          ElMessage.warning('请填写必填项');
+        }
+      });
+    };
+    
+    // 处理地址弹窗关闭
+    const handleAddressDialogClose = () => {
+      // 地址列表弹窗关闭时不需要特殊处理
+    };
+    
+    // 处理地址表单弹窗关闭
+    const handleAddressFormDialogClose = () => {
+      if (addressFormRef.value) {
+        addressFormRef.value.resetFields();
+      }
+    };
 
     return {
       cartItem_data,
       ...toRefs(cartItem_data),
       formData,
+      addressFormData,
       cartItemRules,
+      addressFormRules,
       cartItemFormRef,
+      addressFormRef,
       dialogVisible,
+      addressDialogVisible,
+      addressFormDialogVisible,
       editMode,
+      addressEditMode,
       dialogTitle,
+      addressFormTitle,
       showedDataList,
       multipleSelection,
+      addressList,
       onSearchCartItem,
       onAddCartItem,
       onEditCartItem,
       onDeleteCartItem,
       handleSelectionChange,
       onCheckout,
+      onManageAddress,
+      onAddAddress,
+      onEditAddress,
+      onDeleteAddress,
       submitCartItemForm,
+      submitAddressForm,
       handleDialogClose,
+      handleAddressDialogClose,
+      handleAddressFormDialogClose,
       currentChange,
       sizeChange
     }
   }
 })
 </script>
-
-<style scoped>
-.search-form{
-  padding: 10px 0 0 10px;
-  margin-bottom: 20px;
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  padding: 10px 0;
-}
-
-/* 美化分页组件样式 */
-::v-deep(.el-pagination) {
-  padding: 0;
-  font-weight: normal;
-}
-
-::v-deep(.el-pagination .el-pagination__total) {
-  margin-right: 16px;
-}
-
-::v-deep(.el-pagination .el-pagination__sizes) {
-  margin-right: 16px;
-}
-
-::v-deep(.el-pagination .btn-prev),
-::v-deep(.el-pagination .btn-next) {
-  background: #f4f4f5;
-  border-radius: 4px;
-}
-
-::v-deep(.el-pagination .el-pager li) {
-  background: #f4f4f5;
-  border-radius: 4px;
-}
-
-::v-deep(.el-pagination .el-pager li.active) {
-  background-color: #409eff;
-  color: #fff;
-}
-</style>
