@@ -292,7 +292,7 @@ export function getAuthorityList(){
 // 地址列表接口
 export function getAddressList() {
     return service({
-        url: "/address/list",
+        url: "/address/selectPage",
         method: "GET"
     })
 }

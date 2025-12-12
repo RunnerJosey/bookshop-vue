@@ -12,14 +12,16 @@
       <el-form-item>
         <el-button type="primary" @click="onSearchCartItem">查询</el-button>
       </el-form-item>
-      
+
+      <el-form-item>
+        <el-button type="primary" @click="onManageAddress">管理收货地址</el-button>
+      </el-form-item>
+
       <el-form-item>
         <el-button color="#165DFF" @click="onCheckout">去结算</el-button>
       </el-form-item>
       
-      <el-form-item>
-        <el-button @click="onManageAddress">管理收货地址</el-button>
-      </el-form-item>
+
     </el-form>
 
     <el-table :data="showedDataList.compDataList" border style="width: 100%" @selection-change="handleSelectionChange">
@@ -230,7 +232,7 @@
             </el-option>
           </el-select>
           <div style="margin-top: 10px;" v-if="selectedAddressInfo">
-            <el-card shadow="never">
+            <el-card shadow="never" style="border: none;">
               <div><strong>收件人：</strong>{{ selectedAddressInfo.receiver }}</div>
               <div><strong>手机号：</strong>{{ selectedAddressInfo.phone }}</div>
               <div><strong>收货地址：</strong>{{ selectedAddressInfo.address }}</div>
@@ -259,13 +261,13 @@
 
         <!-- 订单汇总 -->
         <el-form-item label="订单汇总">
-          <div style="text-align: right; width: 80%;">
-            <el-descriptions :column="0" border style="display: inline-block; text-align: left; float: right;">
-              <el-descriptions-item label="商品总数">{{ totalQuantity }}</el-descriptions-item>
-              <el-descriptions-item label="商品总价">¥{{ totalAmount.toFixed(2) }}</el-descriptions-item>
-              <el-descriptions-item label="运费">¥{{ shippingFee.toFixed(2) }}</el-descriptions-item>
-              <el-descriptions-item label="优惠金额">-¥{{ discountAmount.toFixed(2) }}</el-descriptions-item>
-              <el-descriptions-item label="应付金额">
+          <div style="text-align: left; width: 80%;">
+            <el-descriptions :column="1" style="display: inline-block; text-align: left; float: left;">
+              <el-descriptions-item label="商品总数：">{{ totalQuantity }}</el-descriptions-item>
+              <el-descriptions-item label="商品总价：">¥{{ totalAmount.toFixed(2) }}</el-descriptions-item>
+              <el-descriptions-item label="运费：">¥{{ shippingFee.toFixed(2) }}</el-descriptions-item>
+              <el-descriptions-item label="优惠金额：">-¥{{ discountAmount.toFixed(2) }}</el-descriptions-item>
+              <el-descriptions-item label="应付金额：">
                 <span style="color: #ff0000; font-size: 16px; font-weight: bold;">
                   ¥{{ payableAmount.toFixed(2) }}
                 </span>
@@ -287,7 +289,7 @@
 
 <script lang="ts">
 import {defineComponent, onMounted, reactive, toRefs, ref, computed, watch} from 'vue';
-import {addCartItem, deleteCartItem, getCartItemList, updateCartItem, addOrders} from "@/request/api";
+import {addCartItem, deleteCartItem, getCartItemList, updateCartItem, addOrders, getAddressList, addAddress, updateAddress, deleteAddress} from "@/request/api";
 import {ICartItem, CartItemPages, IAddCartItem, ICartItemEdit} from "@/type/cartItem";
 import { ElMessageBox, ElMessage, FormInstance } from 'element-plus';
 
@@ -573,35 +575,28 @@ export default defineComponent({
     
     // 初始化地址列表
     const initAddressList = () => {
-      // 模拟获取地址列表
-      addressList.value = [
-        {
-          id: "1",
-          receiver: "张三",
-          phone: "13800138000",
-          address: "北京市朝阳区某某街道某某小区1号楼101室",
-          isDefault: 1,
-          tag: "家"
-        },
-        {
-          id: "2",
-          receiver: "李四",
-          phone: "13900139000",
-          address: "上海市浦东新区某某路123号某某大厦",
-          isDefault: 0,
-          tag: "公司"
+      // 从接口获取地址列表
+      getAddressList().then((res: any) => {
+        if (res && res.code === 200 && res.data) {
+          addressList.value = res.data;
+          
+          // 设置默认地址
+          const defaultAddress = addressList.value.find((addr: any) => addr.isDefault === 1);
+          if (defaultAddress) {
+            selectedAddressId.value = defaultAddress.id;
+            selectedAddressInfo.value = defaultAddress;
+          } else if (addressList.value.length > 0) {
+            selectedAddressId.value = addressList.value[0].id;
+            selectedAddressInfo.value = addressList.value[0];
+          }
+        } else {
+          console.error("获取地址列表失败:", res);
+          ElMessage.error('获取地址列表失败');
         }
-      ];
-      
-      // 设置默认地址
-      const defaultAddress = addressList.value.find(addr => addr.isDefault === 1);
-      if (defaultAddress) {
-        selectedAddressId.value = defaultAddress.id;
-        selectedAddressInfo.value = defaultAddress;
-      } else if (addressList.value.length > 0) {
-        selectedAddressId.value = addressList.value[0].id;
-        selectedAddressInfo.value = addressList.value[0];
-      }
+      }).catch((error: any) => {
+        console.error('获取地址列表失败:', error);
+        ElMessage.error('获取地址列表失败: ' + (error.message || '未知错误'));
+      });
     };
     
     // 地址变更处理
@@ -660,25 +655,18 @@ export default defineComponent({
     
     // 管理收货地址
     const onManageAddress = () => {
-      // 模拟获取地址列表
-      addressList.value = [
-        {
-          id: "1",
-          receiver: "张三",
-          phone: "13800138000",
-          address: "北京市朝阳区某某街道某某小区1号楼101室",
-          isDefault: 1,
-          tag: "家"
-        },
-        {
-          id: "2",
-          receiver: "李四",
-          phone: "13900139000",
-          address: "上海市浦东新区某某路123号某某大厦",
-          isDefault: 0,
-          tag: "公司"
+      // 从接口获取地址列表
+      getAddressList().then((res: any) => {
+        if (res && res.code === 200 && res.data) {
+          addressList.value = res.data;
+        } else {
+          console.error("获取地址列表失败:", res);
+          ElMessage.error('获取地址列表失败');
         }
-      ];
+      }).catch((error: any) => {
+        console.error('获取地址列表失败:', error);
+        ElMessage.error('获取地址列表失败: ' + (error.message || '未知错误'));
+      });
       addressDialogVisible.value = true;
     };
     
@@ -722,15 +710,23 @@ export default defineComponent({
           cancelButtonText: '取消',
           type: 'warning',
         }
-      ).then(() => {
-        // 模拟删除操作
-        addressList.value = addressList.value.filter(item => item.id !== id);
-        ElMessage.success('删除成功');
-        
-        // 如果删除的是当前选中的地址，则清空选中
-        if (selectedAddressId.value === id) {
-          selectedAddressId.value = "";
-          selectedAddressInfo.value = null;
+      ).then(async () => {
+        try {
+          // 调用删除地址接口
+          await deleteAddress(id);
+          ElMessage.success('删除成功');
+          
+          // 重新获取地址列表
+          initAddressList();
+          
+          // 如果删除的是当前选中的地址，则清空选中
+          if (selectedAddressId.value === id) {
+            selectedAddressId.value = "";
+            selectedAddressInfo.value = null;
+          }
+        } catch (error: any) {
+          console.error('删除地址失败:', error);
+          ElMessage.error('删除失败: ' + (error.message || '未知错误'));
         }
       }).catch(() => {
         // 用户取消删除
@@ -745,24 +741,16 @@ export default defineComponent({
           try {
             if (addressEditMode.value) {
               // 编辑模式
-              const index = addressList.value.findIndex(item => item.id === addressFormData.id);
-              if (index !== -1) {
-                addressList.value[index] = { ...addressFormData };
-                ElMessage.success('地址更新成功');
-                
-                // 如果编辑的是当前选中的地址，更新选中地址信息
-                if (selectedAddressId.value === addressFormData.id) {
-                  selectedAddressInfo.value = { ...addressFormData };
-                }
-              }
+              await updateAddress(addressFormData);
+              ElMessage.success('地址更新成功');
+              // 重新获取地址列表
+              initAddressList();
             } else {
               // 新增模式
-              const newAddress = {
-                ...addressFormData,
-                id: Date.now().toString() // 简单生成ID
-              };
-              addressList.value.push(newAddress);
+              await addAddress(addressFormData);
               ElMessage.success('地址添加成功');
+              // 重新获取地址列表
+              initAddressList();
             }
             addressFormDialogVisible.value = false;
           } catch (error: any) {
