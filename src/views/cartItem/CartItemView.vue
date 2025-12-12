@@ -1,3 +1,290 @@
+<template>
+  <div>
+    <el-form :inline="true" :model="selected_data" class="search-form">
+      <el-form-item label="书籍名称">
+        <el-input v-model="selected_data.bookName" placeholder="请输入书籍名称" />
+      </el-form-item>
+      
+      <el-form-item label="书籍规格">
+        <el-input v-model="selected_data.specName" placeholder="请输入书籍规格" />
+      </el-form-item>
+
+      <el-form-item>
+        <el-button type="primary" @click="onSearchCartItem">查询</el-button>
+      </el-form-item>
+      
+      <el-form-item>
+        <el-button color="#165DFF" @click="onCheckout">去结算</el-button>
+      </el-form-item>
+      
+      <el-form-item>
+        <el-button @click="onManageAddress">管理收货地址</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-table :data="showedDataList.compDataList" border style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55" />
+      <el-table-column prop="serialNumber" label="编号" width="60" />
+      <el-table-column prop="id" label="购物车id" width="100" v-if="false" />
+      <el-table-column prop="userId" label="用户ID" width="100" v-if="false" />
+      <el-table-column prop="bookName" label="书籍名称" width="150" />
+      <el-table-column prop="specName" label="书籍规格" width="150" />
+      <el-table-column prop="quantity" label="数量" width="80" />
+      <el-table-column prop="price" label="单价" width="100">
+        <template #default="scope">
+          ¥{{ scope.row.price.toFixed(2) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="addTime" label="加购时间" width="180" />
+      <el-table-column prop="updateTime" label="更新时间" width="180" />
+      <el-table-column label="操作" width="140">
+        <template #default="scope">
+          <el-button type="primary" size="small" @click="onEditCartItem(scope.row)" style="margin-right: 5px;">修改</el-button>
+          <el-button type="danger" size="small" @click="onDeleteCartItem(scope.row.id)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!-- 分页组件 -->
+    <div class="pagination-container">
+      <el-pagination
+          v-model:current-page="selected_data.current_page"
+          v-model:page-size="selected_data.single_page_size"
+          :page-sizes="[10, 20, 30, 50]"
+          :total="selected_data.data_count"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="sizeChange"
+          @current-change="currentChange"
+      />
+    </div>
+
+    <!-- 新增/编辑购物车弹窗 -->
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="handleDialogClose">
+      <el-form
+        :model="formData"
+        :rules="cartItemRules"
+        ref="cartItemFormRef"
+        label-width="100px">
+        <el-form-item label="购物车ID" prop="id" v-show="false">
+        </el-form-item>
+        <el-form-item label="用户ID" prop="userId" v-show="false">
+          <el-input
+            v-model.number="formData.userId"
+            placeholder="请输入用户ID" >
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="书籍SKU ID" prop="bookId" v-show="false">
+          <el-input
+            v-model="formData.bookId"
+            placeholder="请输入书籍SKU ID">
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="书籍规格ID" prop="specId" v-show="false">
+          <el-input
+            v-model="formData.specId"
+            placeholder="请输入书籍规格ID">
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="书籍名称" prop="bookName">
+          <el-input
+            v-model="formData.bookName"
+            placeholder="请输入书籍名称">
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="书籍规格" prop="specName">
+          <el-input
+            v-model="formData.specName"
+            placeholder="请输入书籍规格">
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="数量" prop="quantity">
+          <el-input-number
+            v-model="formData.quantity"
+            :min="1"
+            controls-position="right"
+            style="width: 100%">
+          </el-input-number>
+        </el-form-item>
+
+        <el-form-item label="单价" prop="price" v-show="false">
+          <el-input-number
+            v-model="formData.price"
+            :min="0"
+            :precision="2"
+            controls-position="right"
+            style="width: 100%">
+          </el-input-number>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitCartItemForm">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 管理收货地址弹窗 -->
+    <el-dialog v-model="addressDialogVisible" title="管理收货地址" width="800px" @close="handleAddressDialogClose">
+      <div style="margin-bottom: 20px;">
+        <el-button type="primary" @click="onAddAddress">新增地址</el-button>
+      </div>
+      
+      <el-table :data="addressList" border style="width: 100%">
+        <el-table-column prop="receiver" label="收件人" width="100" />
+        <el-table-column prop="phone" label="手机号" width="120" />
+        <el-table-column prop="address" label="收货地址" />
+        <el-table-column prop="tag" label="地址标签" width="100" />
+        <el-table-column label="是否默认" width="100">
+          <template #default="scope">
+            <el-tag v-if="scope.row.isDefault === 1" type="success">是</el-tag>
+            <el-tag v-else type="info">否</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="150">
+          <template #default="scope">
+            <el-button type="primary" size="small" @click="onEditAddress(scope.row)" style="margin-right: 5px;">修改</el-button>
+            <el-button type="danger" size="small" @click="onDeleteAddress(scope.row.id)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="addressDialogVisible = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 新增/编辑地址弹窗 -->
+    <el-dialog v-model="addressFormDialogVisible" :title="addressFormTitle" width="500px" @close="handleAddressFormDialogClose">
+      <el-form
+        :model="addressFormData"
+        :rules="addressFormRules"
+        ref="addressFormRef"
+        label-width="100px">
+        <el-form-item label="收件人" prop="receiver">
+          <el-input v-model="addressFormData.receiver" placeholder="请输入收件人"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="addressFormData.phone" placeholder="请输入手机号"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="收货地址" prop="address">
+          <el-input 
+            v-model="addressFormData.address" 
+            type="textarea" 
+            placeholder="请输入收货地址"
+            :rows="3">
+          </el-input>
+        </el-form-item>
+        
+        <el-form-item label="地址标签" prop="tag">
+          <el-input v-model="addressFormData.tag" placeholder="请输入地址标签"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="设为默认">
+          <el-switch 
+            v-model="addressFormData.isDefault" 
+            :active-value="1" 
+            :inactive-value="0">
+          </el-switch>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="addressFormDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitAddressForm">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 结算弹窗 -->
+    <el-dialog v-model="checkoutDialogVisible" title="订单结算" width="800px" @close="handleCheckoutDialogClose">
+      <el-form label-width="100px">
+        <!-- 收货地址选择 -->
+        <el-form-item label="收货地址">
+          <el-select 
+            v-model="selectedAddressId" 
+            placeholder="请选择收货地址" 
+            style="width: 100%"
+            @change="onAddressChange">
+            <el-option
+              v-for="address in addressList"
+              :key="address.id"
+              :label="`${address.receiver} ${address.phone} ${address.address}`"
+              :value="address.id">
+              <div style="display: flex; justify-content: space-between; width: 100%;">
+                <span>{{ address.receiver }} {{ address.tag }}</span>
+                <span v-if="address.isDefault" style="color: #409eff;">[默认]</span>
+              </div>
+              <div style="font-size: 12px; color: #999;">{{ address.address }}</div>
+            </el-option>
+          </el-select>
+          <div style="margin-top: 10px;" v-if="selectedAddressInfo">
+            <el-card shadow="never">
+              <div><strong>收件人：</strong>{{ selectedAddressInfo.receiver }}</div>
+              <div><strong>手机号：</strong>{{ selectedAddressInfo.phone }}</div>
+              <div><strong>收货地址：</strong>{{ selectedAddressInfo.address }}</div>
+            </el-card>
+          </div>
+        </el-form-item>
+
+        <!-- 商品详情 -->
+        <el-form-item label="商品详情">
+          <el-table :data="multipleSelection" border style="width: 100%">
+            <el-table-column prop="bookName" label="书籍名称" width="150" />
+            <el-table-column prop="specName" label="规格" width="120" />
+            <el-table-column prop="price" label="单价" width="100">
+              <template #default="scope">
+                ¥{{ scope.row.price.toFixed(2) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="quantity" label="数量" width="80" />
+            <el-table-column label="小计" width="100">
+              <template #default="scope">
+                ¥{{ (scope.row.price * scope.row.quantity).toFixed(2) }}
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-form-item>
+
+        <!-- 订单汇总 -->
+        <el-form-item label="订单汇总">
+          <div style="text-align: right; width: 80%;">
+            <el-descriptions :column="0" border style="display: inline-block; text-align: left; float: right;">
+              <el-descriptions-item label="商品总数">{{ totalQuantity }}</el-descriptions-item>
+              <el-descriptions-item label="商品总价">¥{{ totalAmount.toFixed(2) }}</el-descriptions-item>
+              <el-descriptions-item label="运费">¥{{ shippingFee.toFixed(2) }}</el-descriptions-item>
+              <el-descriptions-item label="优惠金额">-¥{{ discountAmount.toFixed(2) }}</el-descriptions-item>
+              <el-descriptions-item label="应付金额">
+                <span style="color: #ff0000; font-size: 16px; font-weight: bold;">
+                  ¥{{ payableAmount.toFixed(2) }}
+                </span>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="checkoutDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmCheckout" :loading="isCheckingOut">确定结算</el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
 <script lang="ts">
 import {defineComponent, onMounted, reactive, toRefs, ref, computed, watch} from 'vue';
 import {addCartItem, deleteCartItem, getCartItemList, updateCartItem, addOrders} from "@/request/api";
@@ -12,12 +299,16 @@ export default defineComponent({
     const dialogVisible = ref(false);
     const addressDialogVisible = ref(false);
     const addressFormDialogVisible = ref(false);
+    const checkoutDialogVisible = ref(false);
+    const isCheckingOut = ref(false);
     const editMode = ref(false); // false为新增，true为编辑
     const addressEditMode = ref(false); // false为新增，true为编辑
     const dialogTitle = computed(() => editMode.value ? '编辑购物车' : '新增购物车');
     const addressFormTitle = computed(() => addressEditMode.value ? '编辑收货地址' : '新增收货地址');
     const multipleSelection = ref<ICartItem[]>([]);
     const addressList = ref<any[]>([]); // 实际项目中应该使用具体类型
+    const selectedAddressId = ref<string>("");
+    const selectedAddressInfo = ref<any>(null);
     
     // 表单数据（解决v-model不能使用三元表达式的问题）
     const formData = reactive({
@@ -273,6 +564,63 @@ export default defineComponent({
         return;
       }
       
+      // 初始化地址列表
+      initAddressList();
+      
+      // 显示结算弹窗
+      checkoutDialogVisible.value = true;
+    };
+    
+    // 初始化地址列表
+    const initAddressList = () => {
+      // 模拟获取地址列表
+      addressList.value = [
+        {
+          id: "1",
+          receiver: "张三",
+          phone: "13800138000",
+          address: "北京市朝阳区某某街道某某小区1号楼101室",
+          isDefault: 1,
+          tag: "家"
+        },
+        {
+          id: "2",
+          receiver: "李四",
+          phone: "13900139000",
+          address: "上海市浦东新区某某路123号某某大厦",
+          isDefault: 0,
+          tag: "公司"
+        }
+      ];
+      
+      // 设置默认地址
+      const defaultAddress = addressList.value.find(addr => addr.isDefault === 1);
+      if (defaultAddress) {
+        selectedAddressId.value = defaultAddress.id;
+        selectedAddressInfo.value = defaultAddress;
+      } else if (addressList.value.length > 0) {
+        selectedAddressId.value = addressList.value[0].id;
+        selectedAddressInfo.value = addressList.value[0];
+      }
+    };
+    
+    // 地址变更处理
+    const onAddressChange = (addressId: string) => {
+      const address = addressList.value.find(addr => addr.id === addressId);
+      if (address) {
+        selectedAddressInfo.value = address;
+      }
+    };
+    
+    // 确定结算
+    const confirmCheckout = async () => {
+      if (!selectedAddressId.value) {
+        ElMessage.warning('请选择收货地址');
+        return;
+      }
+      
+      isCheckingOut.value = true;
+      
       try {
         // 准备订单数据数组
         const orderDataArray = multipleSelection.value.map(item => {
@@ -287,7 +635,8 @@ export default defineComponent({
             discountAmount: 0,       // 无折扣
             freight: 0,              // 无运费
             payType: 1,              // 默认微信支付
-            orderStatus: 0           // 待付款状态
+            orderStatus: 0,          // 待付款状态
+            addressId: selectedAddressId.value  // 添加地址ID
           };
         });
         
@@ -297,11 +646,15 @@ export default defineComponent({
         ElMessage.success(`成功创建${orderDataArray.length}个订单`);
         console.log('选中的商品:', multipleSelection.value);
         
-        // 结算完成后，可以考虑清除选中项或刷新列表
-        // 这里可以根据实际需求进行调整
+        // 关闭结算弹窗
+        checkoutDialogVisible.value = false;
+        
+        // 可以在这里添加其他操作，比如清空购物车等
       } catch (error: any) {
         console.error('结算失败:', error);
         ElMessage.error('结算失败: ' + (error.message || '未知错误'));
+      } finally {
+        isCheckingOut.value = false;
       }
     };
     
@@ -373,6 +726,12 @@ export default defineComponent({
         // 模拟删除操作
         addressList.value = addressList.value.filter(item => item.id !== id);
         ElMessage.success('删除成功');
+        
+        // 如果删除的是当前选中的地址，则清空选中
+        if (selectedAddressId.value === id) {
+          selectedAddressId.value = "";
+          selectedAddressInfo.value = null;
+        }
       }).catch(() => {
         // 用户取消删除
       });
@@ -390,6 +749,11 @@ export default defineComponent({
               if (index !== -1) {
                 addressList.value[index] = { ...addressFormData };
                 ElMessage.success('地址更新成功');
+                
+                // 如果编辑的是当前选中的地址，更新选中地址信息
+                if (selectedAddressId.value === addressFormData.id) {
+                  selectedAddressInfo.value = { ...addressFormData };
+                }
               }
             } else {
               // 新增模式
@@ -422,6 +786,34 @@ export default defineComponent({
         addressFormRef.value.resetFields();
       }
     };
+    
+    // 处理结算弹窗关闭
+    const handleCheckoutDialogClose = () => {
+      // 结算弹窗关闭时不需要特殊处理
+    };
+    
+    // 计算商品总数
+    const totalQuantity = computed(() => {
+      return multipleSelection.value.reduce((total, item) => total + item.quantity, 0);
+    });
+    
+    // 计算商品总价
+    const totalAmount = computed(() => {
+      return multipleSelection.value.reduce((total, item) => total + (item.price * item.quantity), 0);
+    });
+    
+    // 运费（假设满50免运费）
+    const shippingFee = computed(() => {
+      return totalAmount.value >= 50 ? 0 : 5;
+    });
+    
+    // 优惠金额（假设无优惠）
+    const discountAmount = ref(0);
+    
+    // 应付金额
+    const payableAmount = computed(() => {
+      return totalAmount.value + shippingFee.value - discountAmount.value;
+    });
 
     return {
       cartItem_data,
@@ -435,6 +827,8 @@ export default defineComponent({
       dialogVisible,
       addressDialogVisible,
       addressFormDialogVisible,
+      checkoutDialogVisible,
+      isCheckingOut,
       editMode,
       addressEditMode,
       dialogTitle,
@@ -442,12 +836,21 @@ export default defineComponent({
       showedDataList,
       multipleSelection,
       addressList,
+      selectedAddressId,
+      selectedAddressInfo,
+      totalQuantity,
+      totalAmount,
+      shippingFee,
+      discountAmount,
+      payableAmount,
       onSearchCartItem,
       onAddCartItem,
       onEditCartItem,
       onDeleteCartItem,
       handleSelectionChange,
       onCheckout,
+      onAddressChange,
+      confirmCheckout,
       onManageAddress,
       onAddAddress,
       onEditAddress,
@@ -457,9 +860,54 @@ export default defineComponent({
       handleDialogClose,
       handleAddressDialogClose,
       handleAddressFormDialogClose,
+      handleCheckoutDialogClose,
       currentChange,
       sizeChange
     }
   }
 })
 </script>
+
+<style scoped>
+.search-form{
+  padding: 10px 0 0 10px;
+  margin-bottom: 20px;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+/* 美化分页组件样式 */
+::v-deep(.el-pagination) {
+  padding: 0;
+  font-weight: normal;
+}
+
+::v-deep(.el-pagination .el-pagination__total) {
+  margin-right: 16px;
+}
+
+::v-deep(.el-pagination .el-pagination__sizes) {
+  margin-right: 16px;
+}
+
+::v-deep(.el-pagination .btn-prev),
+::v-deep(.el-pagination .btn-next) {
+  background: #f4f4f5;
+  border-radius: 4px;
+}
+
+::v-deep(.el-pagination .el-pager li) {
+  background: #f4f4f5;
+  border-radius: 4px;
+}
+
+::v-deep(.el-pagination .el-pager li.active) {
+  background-color: #409eff;
+  color: #fff;
+}
+</style>
