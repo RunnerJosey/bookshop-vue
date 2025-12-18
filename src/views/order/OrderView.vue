@@ -243,7 +243,7 @@ export default defineComponent({
           // 将ID转换为字符串以避免精度问题
           const processedRecords = res.data.records.map((record: any) => ({
             ...record,
-            id: record.id.toString(), // 转换为字符串
+            id: (record.id || record.orderId || '').toString(), // 转换为字符串
             // 确保所有必需字段都有默认值
             orderStatus: record.orderStatus !== undefined ? record.orderStatus : 0,
             totalAmount: record.totalAmount !== undefined ? record.totalAmount : 0,
@@ -260,7 +260,7 @@ export default defineComponent({
           }));
           
           order_data.order_list = processedRecords;
-          order_data.selected_data.data_count = res.data.total;
+          order_data.selected_data.data_count = res.data.total || res.data.records.length;
         } else {
           console.error("API 数据格式不正确:", res);
           order_data.order_list = [];

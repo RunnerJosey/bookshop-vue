@@ -2,7 +2,7 @@ import {IRole, IRoleWithAuth} from "@/type/role";
 
 // 用户接口
 export interface IUser {
-    id: number,  // 用户id
+    id: string,  // 用户id
     nickName: string,  // 用户昵称
     roles: string[],   // 用户角色, 可能有多个,所以是数组
     userName: string,  // 用户名
@@ -27,7 +27,7 @@ export interface IQueryUser extends IPage {
 
 // 用户编辑接口
 export interface IUserEdit {
-    id: number,  // 用户id
+    id: string,  // 用户id
     nickName: string,  // 用户昵称
     roles: string[],   // 用户角色
     userName: string,  // 用户名
@@ -63,7 +63,7 @@ export class UserPages{
     
     // 编辑用户时用到的对象
     editUser: IUserEdit = {
-        id: 0,
+        id: "",
         nickName: "",
         roles: [],
         userName: "",

@@ -1,15 +1,15 @@
 // 角色接口
 export interface IRole{
-    id: number,      // 角色id (后端实际字段)
-    roleId?: number, // 角色id (前端可能使用的字段)
+    id: string,      // 角色id (后端实际字段)
+    roleId?: string, // 角色id (前端可能使用的字段)
     roleName: string  // 角色名称
     description : string //角色描述
 }
 
 // 有权限的角色接口
 export interface IRoleWithAuth{
-    id: number,          // 后端返回的实际字段名
-    roleId?: number,      // 前端可能使用的字段名（可选）
+    id: string,          // 后端返回的实际字段名
+    roleId?: string,      // 前端可能使用的字段名（可选）
     roleName: string,
     description: string,
     authority: []
@@ -24,15 +24,15 @@ export interface IPage {
 
 // 角色查询接口
 export interface IQueryRole extends IPage {
-    id: number,  // 更改为id
+    id: string,  // 更改为id
     roleName: string,
     description: string
 }
 
 // 角色编辑接口
 export interface IRoleEdit {
-    id?: number,         // 后端实际使用的字段
-    roleId?: number,     // 前端可能使用的字段
+    id?: string,         // 后端实际使用的字段
+    roleId?: string,     // 前端可能使用的字段
     roleName: string,
     description: string,
     authority: []
@@ -41,7 +41,7 @@ export interface IRoleEdit {
 // 展示角色数据
 export class RolePages{
     selected_data: IQueryRole = {
-        id: 0,  // 更改为id
+        id: "",  // 更改为id
         roleName: "",
         description: "",
         current_page: 1,
@@ -53,7 +53,7 @@ export class RolePages{
     
     // 编辑角色时用到的对象
     editRole: IRoleEdit = {
-        id: 0,
+        id: "",
         roleName: "",
         description: "",
         authority: []

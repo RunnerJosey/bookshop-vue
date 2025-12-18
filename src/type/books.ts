@@ -1,7 +1,7 @@
 // 商品接口
 export interface IGoods {
     userId?: number;   // 商品归属用户id，可选
-    id: number;        // 商品id
+    id: string;        // 商品id
     title: string;     // 商品标题
     introduce: string; // 商品介绍
     author?: string;   // 作者，可选
@@ -30,7 +30,7 @@ export class GoodsPages {
     selected_data: IQueryGoods = {
         title: "",
         userId: 0,
-        id: 0,
+        id: "",
         bookName: "",
         introduce: "",
         current_page: 1,

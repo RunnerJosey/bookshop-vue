@@ -1,6 +1,7 @@
 // 订单接口
 export interface IOrder {
     id: string,              // 主键ID (使用string格式)
+    orderId?: string,        // 订单ID (备用字段)
     orderStatus: number,     // 订单状态：0-待付款 1-待发货 2-待收货 3-已完成 4-已取消 5-退款中 6-已退款
     totalAmount: number,     // 订单总金额（所有图书金额之和）
     payAmount: number,       // 实际支付金额（扣除优惠券/满减后）

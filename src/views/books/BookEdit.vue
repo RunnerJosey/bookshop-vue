@@ -62,7 +62,7 @@ export default defineComponent({
 
     // 初始化表单数据
     const book = reactive<IGoods>({
-      id: 0,
+      id: "",
       bookName: '',
       introduce: '',
       author: '',
@@ -92,7 +92,7 @@ export default defineComponent({
     });
 
     // 获取书籍详情
-    const loadBookDetail = async (id: number) => {
+    const loadBookDetail = async (id: string) => {
       try {
         const res: any = await getBookById(id);
         // 适配新的接口返回数据结构
@@ -134,7 +134,7 @@ export default defineComponent({
       () => props.bookId,
       (newId) => {
         if (props.editMode && newId) {
-          loadBookDetail(newId);
+          loadBookDetail(String(newId));
         } else if (!props.editMode) {
           // 新增模式下重置表单
           resetForm();
@@ -149,7 +149,7 @@ export default defineComponent({
       if (!props.isDialogMode) {
         const id = route.params.id;
         if (id && typeof id === 'string') {
-          loadBookDetail(Number(id));
+          loadBookDetail(id);
         }
       }
     });

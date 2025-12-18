@@ -136,13 +136,20 @@
     <el-dialog v-model="addressDialogVisible" title="管理收货地址" width="800px" @close="handleAddressDialogClose">
       <div style="margin-bottom: 20px;">
         <el-button type="primary" @click="onAddAddress">新增地址</el-button>
+        <el-button type="danger" @click="onDeleteSelectedAddresses" :disabled="selectedAddressRows.length === 0" style="margin-left: 10px;">删除选中</el-button>
       </div>
       
-      <el-table :data="addressList" border style="width: 100%">
-        <el-table-column prop="receiver" label="收件人" width="100" />
-        <el-table-column prop="phone" label="手机号" width="120" />
-        <el-table-column prop="address" label="收货地址" />
-        <el-table-column prop="tag" label="地址标签" width="100" />
+      <el-table :data="addressList" border style="width: 100%" @selection-change="handleAddressSelectionChange">
+        <el-table-column type="selection" width="55" />
+        <el-table-column prop="addressId" label="主键id" width="100" v-if="false" />
+        <el-table-column prop="consigneeName" label="收货人" width="100" />
+        <el-table-column prop="consigneePhone" label="手机号" width="120" />
+        <el-table-column label="收货地址">
+          <template #default="scope">
+            {{ scope.row.provinceName }}{{ scope.row.cityName }}{{ scope.row.districtName }}{{ scope.row.detailAddress }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="addressLabel" label="地址标签" width="100" />
         <el-table-column label="是否默认" width="100">
           <template #default="scope">
             <el-tag v-if="scope.row.isDefault === 1" type="success">是</el-tag>
@@ -152,7 +159,7 @@
         <el-table-column label="操作" width="150">
           <template #default="scope">
             <el-button type="primary" size="small" @click="onEditAddress(scope.row)" style="margin-right: 5px;">修改</el-button>
-            <el-button type="danger" size="small" @click="onDeleteAddress(scope.row.id)">删除</el-button>
+            <el-button type="danger" size="small" @click="onDeleteSingleAddress(scope.row.addressId)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -171,25 +178,64 @@
         :rules="addressFormRules"
         ref="addressFormRef"
         label-width="100px">
-        <el-form-item label="收件人" prop="receiver">
-          <el-input v-model="addressFormData.receiver" placeholder="请输入收件人"></el-input>
+        <el-form-item label="收货人" prop="consigneeName">
+          <el-input v-model="addressFormData.consigneeName" placeholder="请输入收货人姓名"></el-input>
         </el-form-item>
         
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="addressFormData.phone" placeholder="请输入手机号"></el-input>
+        <el-form-item label="手机号" prop="consigneePhone">
+          <el-input v-model="addressFormData.consigneePhone" placeholder="请输入手机号"></el-input>
         </el-form-item>
         
-        <el-form-item label="收货地址" prop="address">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="省份" prop="provinceName">
+              <el-select v-model="addressFormData.provinceName" placeholder="请选择省份" @change="onProvinceChange">
+                <el-option
+                  v-for="province in provinceList"
+                  :key="province.name"
+                  :label="province.name"
+                  :value="province.name">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="城市" prop="cityName">
+              <el-select v-model="addressFormData.cityName" placeholder="请选择城市" @change="onCityChange" :disabled="!addressFormData.provinceName">
+                <el-option
+                  v-for="city in cityList"
+                  :key="city.name"
+                  :label="city.name"
+                  :value="city.name">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="区县" prop="districtName">
+              <el-select v-model="addressFormData.districtName" placeholder="请选择区县" :disabled="!addressFormData.cityName">
+                <el-option
+                  v-for="district in districtList"
+                  :key="district.name"
+                  :label="district.name"
+                  :value="district.name">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
+        <el-form-item label="详细地址" prop="detailAddress">
           <el-input 
-            v-model="addressFormData.address" 
+            v-model="addressFormData.detailAddress" 
             type="textarea" 
-            placeholder="请输入收货地址"
+            placeholder="请输入详细地址"
             :rows="3">
           </el-input>
         </el-form-item>
         
-        <el-form-item label="地址标签" prop="tag">
-          <el-input v-model="addressFormData.tag" placeholder="请输入地址标签"></el-input>
+        <el-form-item label="地址标签" prop="addressLabel">
+          <el-input v-model="addressFormData.addressLabel" placeholder="请输入地址标签"></el-input>
         </el-form-item>
         
         <el-form-item label="设为默认">
@@ -220,22 +266,22 @@
             style="width: 100%"
             @change="onAddressChange">
             <el-option
-              v-for="address in addressList"
-              :key="address.id"
-              :label="`${address.receiver} ${address.phone} ${address.address}`"
-              :value="address.id">
+              v-for="address in validAddressList"
+              :key="address.id || address.addressId"
+              :label="`${address.consigneeName} ${address.consigneePhone} ${address.provinceName}${address.cityName}${address.districtName}${address.detailAddress}`"
+              :value="address.id || address.addressId">
               <div style="display: flex; justify-content: space-between; width: 100%;">
-                <span>{{ address.receiver }} {{ address.tag }}</span>
+                <span>{{ address.consigneeName }} {{ address.addressLabel }}</span>
                 <span v-if="address.isDefault" style="color: #409eff;">[默认]</span>
               </div>
-              <div style="font-size: 12px; color: #999;">{{ address.address }}</div>
+              <div style="font-size: 12px; color: #999;">{{ address.provinceName }}{{ address.cityName }}{{ address.districtName }}{{ address.detailAddress }}</div>
             </el-option>
           </el-select>
           <div style="margin-top: 10px;" v-if="selectedAddressInfo">
             <el-card shadow="never" style="border: none;">
-              <div><strong>收件人：</strong>{{ selectedAddressInfo.receiver }}</div>
-              <div><strong>手机号：</strong>{{ selectedAddressInfo.phone }}</div>
-              <div><strong>收货地址：</strong>{{ selectedAddressInfo.address }}</div>
+              <div><strong>收件人：</strong>{{ selectedAddressInfo.consigneeName }}</div>
+              <div><strong>手机号：</strong>{{ selectedAddressInfo.consigneePhone }}</div>
+              <div><strong>收货地址：</strong>{{ selectedAddressInfo.provinceName }}{{ selectedAddressInfo.cityName }}{{ selectedAddressInfo.districtName }}{{ selectedAddressInfo.detailAddress }}</div>
             </el-card>
           </div>
         </el-form-item>
@@ -292,6 +338,7 @@ import {defineComponent, onMounted, reactive, toRefs, ref, computed, watch} from
 import {addCartItem, deleteCartItem, getCartItemList, updateCartItem, addOrders, getAddressList, addAddress, updateAddress, deleteAddress} from "@/request/api";
 import {ICartItem, CartItemPages, IAddCartItem, ICartItemEdit} from "@/type/cartItem";
 import { ElMessageBox, ElMessage, FormInstance } from 'element-plus';
+import { areaData } from '@/utils/areaData';
 
 export default defineComponent({
   setup () {
@@ -309,6 +356,7 @@ export default defineComponent({
     const addressFormTitle = computed(() => addressEditMode.value ? '编辑收货地址' : '新增收货地址');
     const multipleSelection = ref<ICartItem[]>([]);
     const addressList = ref<any[]>([]); // 实际项目中应该使用具体类型
+    const selectedAddressRows = ref<any[]>([]); // 存储选中的地址行
     const selectedAddressId = ref<string>("");
     const selectedAddressInfo = ref<any>(null);
     
@@ -327,12 +375,20 @@ export default defineComponent({
     // 地址表单数据
     const addressFormData = reactive({
       id: "",
-      receiver: "",
-      phone: "",
-      address: "",
-      isDefault: 0,
-      tag: ""
+      consigneeName: "",
+      consigneePhone: "",
+      provinceName: "",
+      cityName: "",
+      districtName: "",
+      detailAddress: "",
+      addressLabel: "",
+      isDefault: 0
     });
+    
+    // 地区数据
+    const provinceList = ref<any[]>(areaData);
+    const cityList = ref<any[]>([]);
+    const districtList = ref<any[]>([]);
 
     // 表单验证规则
     const cartItemRules = {
@@ -346,16 +402,25 @@ export default defineComponent({
 
     // 地址表单验证规则
     const addressFormRules = {
-      receiver: [
-        { required: true, message: '请输入收件人', trigger: 'blur' }
+      consigneeName: [
+        { required: true, message: '请输入收货人姓名', trigger: 'blur' }
       ],
-      phone: [
+      consigneePhone: [
         { required: true, message: '请输入手机号', trigger: 'blur' }
       ],
-      address: [
-        { required: true, message: '请输入收货地址', trigger: 'blur' }
+      provinceName: [
+        { required: true, message: '请输入省份名称', trigger: 'blur' }
       ],
-      tag: [
+      cityName: [
+        { required: true, message: '请输入城市名称', trigger: 'blur' }
+      ],
+      districtName: [
+        { required: true, message: '请输入区县名称', trigger: 'blur' }
+      ],
+      detailAddress: [
+        { required: true, message: '请输入详细地址', trigger: 'blur' }
+      ],
+      addressLabel: [
         { required: true, message: '请输入地址标签', trigger: 'blur' }
       ]
     };
@@ -364,6 +429,34 @@ export default defineComponent({
     cartItem_data.selected_data.current_page = 1;
     cartItem_data.selected_data.data_count = 0;
     cartItem_data.selected_data.single_page_size = 10;
+
+    // 省份变更处理
+    const onProvinceChange = (provinceName: string) => {
+      // 清空市和区县
+      addressFormData.cityName = '';
+      addressFormData.districtName = '';
+      cityList.value = [];
+      districtList.value = [];
+      
+      // 获取选中省份的城市列表
+      const province = provinceList.value.find(p => p.name === provinceName);
+      if (province && province.children) {
+        cityList.value = province.children;
+      }
+    };
+    
+    // 城市变更处理
+    const onCityChange = (cityName: string) => {
+      // 清空区县
+      addressFormData.districtName = '';
+      districtList.value = [];
+      
+      // 获取选中城市的区县列表
+      const city = cityList.value.find(c => c.name === cityName);
+      if (city && city.children) {
+        districtList.value = city.children;
+      }
+    };
 
     onMounted(() => {
       p_getCartItemList()  // 获取全部购物车数据
@@ -411,6 +504,11 @@ export default defineComponent({
           };
         });
       })
+    });
+
+    // 过滤掉无效地址的计算属性
+    const validAddressList = computed(() => {
+      return addressList.value.filter(address => address != null);
     });
 
     // 分页相关方法
@@ -559,6 +657,89 @@ export default defineComponent({
       multipleSelection.value = val;
     };
     
+    // 处理地址多选变化
+    const handleAddressSelectionChange = (val: any[]) => {
+      selectedAddressRows.value = val;
+    };
+    
+    // 删除单个地址
+    const onDeleteSingleAddress = (addressId: string) => {
+      ElMessageBox.confirm(
+        '确定要删除这个收货地址吗？',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      ).then(async () => {
+        try {
+          // 调用删除地址接口，传递addressId参数
+          await deleteAddress([addressId]); // 传递数组形式的ID
+          ElMessage.success('删除成功');
+          
+          // 重新获取地址列表
+          initAddressList();
+          
+          // 如果删除的是当前选中的地址，则清空选中
+          if (selectedAddressId.value === addressId) {
+            selectedAddressId.value = "";
+            selectedAddressInfo.value = null;
+          }
+        } catch (error: any) {
+          console.error('删除地址失败:', error);
+          ElMessage.error('删除失败: ' + (error.message || '未知错误'));
+        }
+      }).catch(() => {
+        // 用户取消删除
+      });
+    };
+    
+    // 批量删除选中的地址
+    const onDeleteSelectedAddresses = () => {
+      if (selectedAddressRows.value.length === 0) {
+        ElMessage.warning('请至少选择一个地址');
+        return;
+      }
+      
+      ElMessageBox.confirm(
+        `确定要删除这 ${selectedAddressRows.value.length} 个收货地址吗？`,
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      ).then(async () => {
+        try {
+          // 提取选中地址的ID列表
+          const idList = selectedAddressRows.value.map(item => item.addressId || item.id);
+          
+          // 调用删除地址接口，传递idList参数
+          await deleteAddress(idList);
+          ElMessage.success('删除成功');
+          
+          // 清空选中项
+          selectedAddressRows.value = [];
+          
+          // 重新获取地址列表
+          initAddressList();
+          
+          // 检查是否有删除当前选中的地址
+          const deletedIds = new Set(idList);
+          if (deletedIds.has(selectedAddressId.value)) {
+            selectedAddressId.value = "";
+            selectedAddressInfo.value = null;
+          }
+        } catch (error: any) {
+          console.error('删除地址失败:', error);
+          ElMessage.error('删除失败: ' + (error.message || '未知错误'));
+        }
+      }).catch(() => {
+        // 用户取消删除
+      });
+    };
+    
     // 去结算
     const onCheckout = async () => {
       if (multipleSelection.value.length === 0) {
@@ -577,17 +758,22 @@ export default defineComponent({
     const initAddressList = () => {
       // 从接口获取地址列表
       getAddressList().then((res: any) => {
-        if (res && res.code === 200 && res.data) {
-          addressList.value = res.data;
+        if (res && res.code === 200 && res.data && res.data.records) {
+          // 过滤掉任何无效的地址对象
+          addressList.value = res.data.records.filter((address: any) => address != null);
           
           // 设置默认地址
           const defaultAddress = addressList.value.find((addr: any) => addr.isDefault === 1);
           if (defaultAddress) {
-            selectedAddressId.value = defaultAddress.id;
+            selectedAddressId.value = defaultAddress.id || defaultAddress.addressId || '';
             selectedAddressInfo.value = defaultAddress;
           } else if (addressList.value.length > 0) {
-            selectedAddressId.value = addressList.value[0].id;
+            selectedAddressId.value = addressList.value[0].id || addressList.value[0].addressId || '';
             selectedAddressInfo.value = addressList.value[0];
+          } else {
+            // 没有地址时清空选择
+            selectedAddressId.value = "";
+            selectedAddressInfo.value = null;
           }
         } else {
           console.error("获取地址列表失败:", res);
@@ -601,15 +787,20 @@ export default defineComponent({
     
     // 地址变更处理
     const onAddressChange = (addressId: string) => {
-      const address = addressList.value.find(addr => addr.id === addressId);
+      const address = addressList.value.find(addr => addr.id === addressId || addr.addressId === addressId);
       if (address) {
         selectedAddressInfo.value = address;
+        selectedAddressId.value = addressId;
+      } else {
+        // 如果找不到匹配的地址，清空选择
+        selectedAddressId.value = "";
+        selectedAddressInfo.value = null;
       }
     };
     
     // 确定结算
     const confirmCheckout = async () => {
-      if (!selectedAddressId.value) {
+      if (!selectedAddressId.value || selectedAddressId.value === "") {
         ElMessage.warning('请选择收货地址');
         return;
       }
@@ -621,6 +812,7 @@ export default defineComponent({
         const orderDataArray = multipleSelection.value.map(item => {
           const subtotal = item.price * item.quantity;
           return {
+            cartItemId: item.id,      // 添加购物车ID
             bookName: item.bookName,
             bookPrice: item.price,
             quantity: item.quantity,
@@ -657,8 +849,9 @@ export default defineComponent({
     const onManageAddress = () => {
       // 从接口获取地址列表
       getAddressList().then((res: any) => {
-        if (res && res.code === 200 && res.data) {
-          addressList.value = res.data;
+        if (res && res.code === 200 && res.data && res.data.records) {
+          // 过滤掉任何无效的地址对象
+          addressList.value = res.data.records.filter((address: any) => address != null);
         } else {
           console.error("获取地址列表失败:", res);
           ElMessage.error('获取地址列表失败');
@@ -676,12 +869,18 @@ export default defineComponent({
       // 重置表单数据
       Object.assign(addressFormData, {
         id: "",
-        receiver: "",
-        phone: "",
-        address: "",
-        isDefault: 0,
-        tag: ""
+        consigneeName: "",
+        consigneePhone: "",
+        provinceName: "",
+        cityName: "",
+        districtName: "",
+        detailAddress: "",
+        addressLabel: "",
+        isDefault: 0
       });
+      // 重置地区列表
+      cityList.value = [];
+      districtList.value = [];
       addressFormDialogVisible.value = true;
     };
     
@@ -690,18 +889,43 @@ export default defineComponent({
       addressEditMode.value = true;
       // 填充表单数据
       Object.assign(addressFormData, {
-        id: row.id,
-        receiver: row.receiver,
-        phone: row.phone,
-        address: row.address,
-        isDefault: row.isDefault,
-        tag: row.tag
+        addressId: row.addressId,
+        consigneeName: row.consigneeName || row.consignee || "",
+        consigneePhone: row.consigneePhone || row.phone || "",
+        provinceName: row.provinceName || "",
+        cityName: row.cityName || "",
+        districtName: row.districtName || "",
+        detailAddress: row.detailAddress || "",
+        addressLabel: row.addressLabel || "",
+        isDefault: row.isDefault || 0
       });
+      
+      // 设置地区列表
+      if (row.provinceName) {
+        const province = provinceList.value.find(p => p.name === row.provinceName);
+        if (province) {
+          cityList.value = province.children;
+          
+          if (row.cityName) {
+            const city = cityList.value.find(c => c.name === row.cityName);
+            if (city && city.children) {
+              districtList.value = city.children;
+            } else {
+              // 如果找不到匹配的城市或其子节点，清空区县列表
+              districtList.value = [];
+            }
+          } else {
+            // 如果没有城市信息，清空区县列表
+            districtList.value = [];
+          }
+        }
+      }
+      
       addressFormDialogVisible.value = true;
     };
     
     // 删除地址
-    const onDeleteAddress = (id: string) => {
+    const onDeleteAddress = (addressId: string) => {
       ElMessageBox.confirm(
         '确定要删除这个收货地址吗？',
         '提示',
@@ -712,15 +936,15 @@ export default defineComponent({
         }
       ).then(async () => {
         try {
-          // 调用删除地址接口
-          await deleteAddress(id);
+          // 调用删除地址接口，传递addressId参数
+          await deleteAddress([addressId]); // 修改为数组形式传递
           ElMessage.success('删除成功');
           
           // 重新获取地址列表
           initAddressList();
           
           // 如果删除的是当前选中的地址，则清空选中
-          if (selectedAddressId.value === id) {
+          if (selectedAddressId.value === addressId) {
             selectedAddressId.value = "";
             selectedAddressInfo.value = null;
           }
@@ -740,7 +964,7 @@ export default defineComponent({
         if (valid) {
           try {
             if (addressEditMode.value) {
-              // 编辑模式
+              // 编辑模式，确保传递addressId参数
               await updateAddress(addressFormData);
               ElMessage.success('地址更新成功');
               // 重新获取地址列表
@@ -824,6 +1048,7 @@ export default defineComponent({
       showedDataList,
       multipleSelection,
       addressList,
+      selectedAddressRows,
       selectedAddressId,
       selectedAddressInfo,
       totalQuantity,
@@ -831,11 +1056,19 @@ export default defineComponent({
       shippingFee,
       discountAmount,
       payableAmount,
+      provinceList,
+      cityList,
+      districtList,
+      onProvinceChange,
+      onCityChange,
       onSearchCartItem,
       onAddCartItem,
       onEditCartItem,
       onDeleteCartItem,
       handleSelectionChange,
+      handleAddressSelectionChange,
+      onDeleteSingleAddress,
+      onDeleteSelectedAddresses,
       onCheckout,
       onAddressChange,
       confirmCheckout,
@@ -850,7 +1083,8 @@ export default defineComponent({
       handleAddressFormDialogClose,
       handleCheckoutDialogClose,
       currentChange,
-      sizeChange
+      sizeChange,
+      validAddressList
     }
   }
 })

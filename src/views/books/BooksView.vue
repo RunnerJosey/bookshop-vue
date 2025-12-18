@@ -148,7 +148,7 @@ export default defineComponent({
     const bookEditRef = ref<InstanceType<typeof BookEdit> | null>(null);
     const cartItemFormRef = ref<InstanceType<typeof ElForm> | null>(null);
     const editMode = ref(false); // false为新增，true为编辑
-    const currentBookId = ref<number | null>(null);
+    const currentBookId = ref<string | null>(null);
     const dialogTitle = computed(() => editMode.value ? '编辑书籍' : '新增书籍');
     
     // 购物车表单数据
@@ -255,13 +255,13 @@ export default defineComponent({
     // 点击修改或者新增按钮时触发
 
 
-  function onEditBook(id: number) {
+  function onEditBook(id: string) {
     editMode.value = true;
     currentBookId.value = id;
     dialogVisible.value = true;
   }
 
-    const onDeleteBook = (id: number) => {
+    const onDeleteBook = (id: string) => {
       ElMessageBox.confirm(
           '确定要删除这本书吗？',
           '提示',

@@ -379,7 +379,7 @@ export default defineComponent({
     };
 
     // 删除用户
-    const onDeleteUser = (id: number) => {
+    const onDeleteUser = (id: string) => {
       ElMessageBox.confirm(
         '确定要删除这个用户吗？',
         '提示',
@@ -390,9 +390,7 @@ export default defineComponent({
         }
       ).then(async () => {
         try {
-          // 确保ID是数字类型
-          const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-          await deleteUser([numericId]);
+          await deleteUser([id]);
           ElMessage.success('删除成功');
           p_getUserList(); // 重新加载用户列表
         } catch (error: any) {
@@ -414,10 +412,7 @@ export default defineComponent({
             try {
               // 确保ID是数字类型
               const userData = {
-                ...user_data.editUser,
-                id: typeof user_data.editUser.id === 'string' 
-                  ? parseInt(user_data.editUser.id, 10) 
-                  : user_data.editUser.id
+                ...user_data.editUser
               };
               
               await updateUser(userData);

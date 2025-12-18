@@ -308,6 +308,11 @@ export function addAddress(data: any) {
 
 // 修改收货地址
 export function updateAddress(data: any) {
+    // 确保传递addressId参数
+    // 如果数据中有id字段但没有addressId字段，则添加addressId字段
+    if (data.id && !data.addressId) {
+        data.addressId = data.id;
+    }
     return service({
         url: "/address/update",
         method: "PUT",
@@ -316,10 +321,17 @@ export function updateAddress(data: any) {
 }
 
 // 删除收货地址
-export function deleteAddress(id: string) {
+export function deleteAddress(idList: (number | string)[] ) {
+    // 如果传入的是单个ID字符串，则转换为数组
+    const ids = Array.isArray(idList) ? idList : [idList];
+    
+    // 直接在URL中拼接查询参数
+    const queryString = ids.join(',');
     return service({
         url: "/address/delete",
         method: "DELETE",
-        params: { id }
+        params: {
+            idList: idList.join(',')  // 将数组转换为逗号分隔的字符串
+        }
     }).then(res => res.data);
 }

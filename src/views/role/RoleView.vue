@@ -156,7 +156,7 @@ export default defineComponent({
       isEditMode.value = false;
       // 重置表单数据
       role_data.editRole = {
-        roleId: 0,
+        roleId: "",
         roleName: "",
         description: "",
         authority: []
@@ -177,7 +177,7 @@ export default defineComponent({
     };
 
     // 删除角色
-    const onDeleteRole = (id: number) => {
+    const onDeleteRole = (id: string) => {
       ElMessageBox.confirm(
         '确定要删除这个角色吗？',
         '提示',
@@ -188,7 +188,7 @@ export default defineComponent({
         }
       ).then(async () => {
         try {
-          await deleteRole([id.toString()]);
+          await deleteRole([id]);
           ElMessage.success('删除成功');
           p_getRoleList(); // 重新加载角色列表
         } catch (error: any) {
