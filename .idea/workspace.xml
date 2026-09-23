@@ -4,23 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8c0349f-42a4-4560-8933-956c6d4c8905" name="Changes" comment="新增订单">
-      <change afterPath="$PROJECT_DIR$/bookshop-vue/src/utils/areaData.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/request/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/request/api.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/type/address.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/type/address.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/type/authority.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/type/authority.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/type/books.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/type/books.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/type/order.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/type/order.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/type/role.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/type/role.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/type/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/type/user.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/views/books/BookEdit.vue" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/views/books/BookEdit.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/views/books/BooksView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/views/books/BooksView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/views/cartItem/CartItemView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/views/cartItem/CartItemView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/views/order/OrderView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/views/order/OrderView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/views/role/RoleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/views/role/RoleView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/views/user/UserView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/views/user/UserView.vue" afterDir="false" />
-    </list>
+    <list default="true" id="a8c0349f-42a4-4560-8933-956c6d4c8905" name="Changes" comment="新增订单11" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -59,7 +43,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "Merging master",
+    "git-widget-placeholder": "master",
     "last_opened_file_path": "C:/workSpace/java/bookshop-vue",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -68,6 +52,7 @@
     "nodejs_package_manager_path": "npm",
     "npm.bookshop.executor": "Debug",
     "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "C:\\workSpace\\java\\bookshop-vue\\bookshop-vue\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -107,7 +92,7 @@
       <workItem from="1765540546970" duration="275000" />
       <workItem from="1765540856100" duration="498000" />
       <workItem from="1765541359150" duration="842000" />
-      <workItem from="1790130195275" duration="1475000" />
+      <workItem from="1790130195275" duration="1994000" />
     </task>
     <task id="LOCAL-00001" summary="新增订单">
       <option name="closed" value="true" />
@@ -117,7 +102,31 @@
       <option name="project" value="LOCAL" />
       <updated>1790153222834</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="新增订单">
+      <option name="closed" value="true" />
+      <created>1790153860709</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1790153860709</updated>
+    </task>
+    <task id="LOCAL-00003" summary="新增订单11">
+      <option name="closed" value="true" />
+      <created>1790154068098</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1790154068098</updated>
+    </task>
+    <task id="LOCAL-00004" summary="新增订单11">
+      <option name="closed" value="true" />
+      <created>1790154216702</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1790154216702</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -136,6 +145,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="新增订单" />
-    <option name="LAST_COMMIT_MESSAGE" value="新增订单" />
+    <MESSAGE value="新增订单11" />
+    <option name="LAST_COMMIT_MESSAGE" value="新增订单11" />
   </component>
 </project>
