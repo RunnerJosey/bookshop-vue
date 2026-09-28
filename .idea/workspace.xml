@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8c0349f-42a4-4560-8933-956c6d4c8905" name="Changes" comment="新增订单11" />
+    <list default="true" id="a8c0349f-42a4-4560-8933-956c6d4c8905" name="Changes" comment="修复订单">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/type/order.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/type/order.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bookshop-vue/src/views/order/OrderView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/bookshop-vue/src/views/order/OrderView.vue" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -92,7 +96,7 @@
       <workItem from="1765540546970" duration="275000" />
       <workItem from="1765540856100" duration="498000" />
       <workItem from="1765541359150" duration="842000" />
-      <workItem from="1790130195275" duration="3907000" />
+      <workItem from="1790130195275" duration="5802000" />
     </task>
     <task id="LOCAL-00001" summary="新增订单">
       <option name="closed" value="true" />
@@ -142,7 +146,15 @@
       <option name="project" value="LOCAL" />
       <updated>1790156152888</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="新增订单11">
+      <option name="closed" value="true" />
+      <created>1790156189639</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1790156189639</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -162,6 +174,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="新增订单" />
     <MESSAGE value="新增订单11" />
-    <option name="LAST_COMMIT_MESSAGE" value="新增订单11" />
+    <MESSAGE value="修复订单" />
+    <option name="LAST_COMMIT_MESSAGE" value="修复订单" />
   </component>
 </project>
